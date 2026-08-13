@@ -867,7 +867,7 @@ everyone would be able to see exactly where.
 |---|---|
 | Kernel core | `lean/Mathesis/TierCalculus.lean` — Mathlib-free, footprint `[]` |
 | Consolidated `Reff` | `lean/Mathesis/Scale/Reff.lean` |
-| Use cases | `lean/Mathesis/Applications/` — 5 cases, 8 modules |
+| Use cases | `lean/Mathesis/Applications/` — 5 cases, 6 modules |
 | Reference checker | `python/mathesis/` — standard library only, no floats |
 | Independent checker | `rust/mathesis-verify/` — zero dependencies, including JSON |
 | Gates | `scripts/verify.sh` — four gates, each demonstrated to fail |

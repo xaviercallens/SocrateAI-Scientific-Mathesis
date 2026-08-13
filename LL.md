@@ -106,6 +106,59 @@ of it.
 
 ---
 
+## LL-9 — A negative control bought noise-immunity by paying with evasion-immunity *(2026-08-13, Stream 0)*
+
+**What happened.** `tier_b_axiom_hygiene.py` matched `^axiom` at column 0, and shipped a control
+proving it ignored the word `axiom` in prose. Both looked right. During review, a second probe
+showed it also ignored:
+
+```lean
+namespace Foo
+  axiom sneaky : Nat     -- one leading space
+private axiom hidden : Nat
+@[simp] axiom tagged : Nat
+```
+
+The control that "proved" the scanner was not noisy passed *for the same reason* the scanner was
+evadable: it matched nothing that was not at column 0. One property was bought with the other,
+and the test suite could not tell the difference.
+
+**Why the count was still right.** Re-scanning Stream 5's tree with a permissive pattern returned
+the same 34. Every axiom there happens to sit at column 0. The reported number was correct; the
+*method* was one space from being wrong, and nothing in the suite would have said so.
+
+**Rule.** When a checker can fail in two independent directions — missing a real hit, or flagging
+a false one — it needs a control for **each direction**, and they must not be satisfiable by the
+same mechanism. The scanner now strips Lean comments and then matches at any indentation, so
+noise-immunity comes from the stripper and evasion-immunity from the pattern. Seven controls, four
+of which would have failed the previous implementation.
+
+**Rule.** A survey number that is right today is not evidence the method is right. Re-derive it a
+second way before filing it. That second derivation is what turned this up.
+
+---
+
+## LL-10 — Gate 4 demonstrated to fail *(2026-08-13, Stream 0)*
+
+**What happened.** `LL-3` recorded a planted-defect probe for Gate 2 but not for Gates 1, 3, or 4.
+Gate 4 was therefore trusted on the strength of having only ever been seen green — the exact
+condition `LL-3` was written to forbid.
+
+A row was appended to `ledger.jsonl` with no matching row in `LEDGER.md`:
+
+```
+FAIL  Gate 4: MX-A-0099 is in ledger.jsonl but not in LEDGER.md
+GATES FAILED — nothing may be committed as verified
+```
+
+The probe was removed and the gate re-run green.
+
+**Rule.** `LL-3` applies to **every** gate, not to whichever one was newest when it was written.
+Gates 1 and 3 have working demonstrations by construction (Gate 1's controls are its own probes;
+Gate 3 caught a real divergence, `LL-1`). Gate 4's was missing and is now recorded here.
+
+---
+
 ## LL-5 **[inherited, Stream 1]** — "No `sorry` in the source" is not the gate
 
 **What happened.** Stream 1 caught **two** broken Lean proofs that a concurrent process's own

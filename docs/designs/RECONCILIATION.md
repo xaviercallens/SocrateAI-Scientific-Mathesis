@@ -124,8 +124,19 @@ Stream 5's `README.md` states:
 
 > **Rule R1**: No `axiom` declarations allowed in `.lean` files.
 
-`tests/tier_b_axiom_hygiene.py --survey` on 2026-08-13 counted **34** across 14 files
-(per-file `sha256` recorded in the survey output). Stream 1's `lean_src/` has **zero**.
+`tests/tier_b_axiom_hygiene.py --survey` on 2026-08-13 counted **34** across 14 files, plus **2**
+`sorry` in `Physics/HolographicDemonstration.lean` (per-file `sha256` in the survey output).
+Stream 1's `lean_src/` has **zero** of each.
+
+**The CI that rule names does not exist.** The README attributes R1–R5 to `dualscale_ci.yml`.
+There is no such file anywhere in the repository, and no `.github/` directory at its top level.
+The rule is stated; nothing checks it. That is `HARDNESS.md`'s definition of the difference
+between an invariant and a preference, and it is why the count is 34 rather than 0.
+
+**The record and the tree disagree.** Commit `e3a82fb`, titled *"zero-sorry Lean 4 verification"*,
+is the commit that **added** `HolographicDemonstration.lean` — the file containing both `sorry`
+occurrences. This is not offered as an accusation: it is what happens to everyone when no gate
+runs, and it is the single most legible argument for why Stream 0 exists.
 
 Three overlaps matter more than the count, because they are places where **one stream
 axiomatizes what another proves**:
@@ -137,9 +148,15 @@ axiomatizes what another proves**:
 | Enstrophy | `axiom enstrophy_of`, `axiom enstrophy_pos` (`Physics/AubinLions.lean`) | defined, with the production identity proved |
 
 An axiom is not a weaker proof; it is a *permanent, invisible* assumption that propagates into
-the footprint of everything downstream. Stream 1's Gate 2 compiles against this tree — so the
-protection is real but conditional: it holds exactly as long as Stream 1 never imports one of
-these modules, and nothing currently enforces that.
+the footprint of everything downstream.
+
+**Contamination is latent, not live — verified.** Stream 1's `lean_src/` imports only `Mathlib.*`
+modules; there is no `import DualScale.…` anywhere. Its gate uses Stream 5's checkout purely as a
+Mathlib *provider* (`lake env lean`), so the DualScale namespace is never loaded and none of these
+34 axioms reaches a Stream 1 footprint today. The protection that would catch it if someone wrote
+that import is Stream 1's own `#print axioms` gate, and it would work. So the finding is about
+**Stream 5's own claims**, not about Stream 1's — and the fix is a gate in Stream 5, not a
+restriction on Stream 1.
 
 **What Stream 0 does about this: nothing, yet.** Recorded as `MX-C-0003`, surfaced to the
 owner. It is not Stream 0's place to edit another stream's tree (draft §10, "authority creep"),

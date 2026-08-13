@@ -33,9 +33,35 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 LEAN_DIR = ROOT / "lean"
 
-#: Where the shared Mathlib build lives. Override with LEAN_ENV_DIR.
-#: This is a cross-stream dependency and a known fragility (PLAN.md K1).
-DEFAULT_ENV = Path.home() / "xdev/SocrateAI-Scientific-RajMathRecovery/dualscale/lean"
+#: Candidate Mathlib providers, tried in order. Override with LEAN_ENV_DIR.
+#:
+#: THIS IS A KNOWN FRAGILITY AND THE ORDER MATTERS (PLAN.md K1). Stream 0 owns
+#: no Mathlib, so it borrows one. The two available checkouts have *different
+#: built subsets and neither is complete*: MechanicaFluidorum has
+#: `Analysis.Calculus.Deriv.*` and `SpecialFunctions.Log.Deriv`;
+#: RajMathRecovery does not. So which tree this resolves to silently determines
+#: what Stream 0 can prove -- UC5's analytic bridge is provable against the
+#: first and not against the second, with no diagnostic distinguishing "false"
+#: from "module not built".
+#:
+#: The resolved directory is printed in the gate output so the dependency is
+#: visible rather than assumed. The fix is K1 (Stream 0 owns a pinned build),
+#: not a longer candidate list.
+DEFAULT_ENV_CANDIDATES = [
+    Path.home() / "xdev/SocrateAI-Scientific-MechanicaFluidorum/lean_src",
+    Path.home() / "xdev/SocrateAI-Scientific-RajMathRecovery/dualscale/lean",
+]
+
+
+def resolve_env() -> Path | None:
+    override = os.environ.get("LEAN_ENV_DIR")
+    if override:
+        path = Path(override)
+        return path if path.is_dir() else None
+    for candidate in DEFAULT_ENV_CANDIDATES:
+        if (candidate / ".lake").is_dir():
+            return candidate
+    return None
 
 DIRECTIVE = re.compile(r"MATHESIS-GATE:\s*(\w+)(?:\(([^)]*)\))?\s*=\s*(.*)")
 
@@ -100,9 +126,12 @@ def parse_contract(path: Path) -> Contract:
 def compile_module(path: Path, contract: Contract) -> tuple[int, str]:
     rel = path.relative_to(LEAN_DIR)
     if contract.env == "mathlib":
-        env_dir = Path(os.environ.get("LEAN_ENV_DIR", DEFAULT_ENV))
-        if not env_dir.is_dir():
-            return 127, f"LEAN_ENV_DIR not found: {env_dir}"
+        env_dir = resolve_env()
+        if env_dir is None:
+            return 127, (
+                "no Mathlib provider found. Set LEAN_ENV_DIR, or build one of: "
+                + ", ".join(str(c) for c in DEFAULT_ENV_CANDIDATES)
+            )
         proc = subprocess.run(
             ["lake", "env", "lean", str(path)],
             cwd=env_dir, capture_output=True, text=True,
@@ -160,7 +189,11 @@ def check(path: Path) -> list[str]:
             "went unchecked (LL-11)"
         )
     elif not failures:
-        print(f"  {rel}: {printed}/{requested} footprint(s) as declared (env={contract.env})")
+        env_note = contract.env
+        if contract.env == "mathlib":
+            resolved = resolve_env()
+            env_note = f"mathlib@{resolved.name}" if resolved else "mathlib@UNRESOLVED"
+        print(f"  {rel}: {printed}/{requested} footprint(s) as declared (env={env_note})")
 
     return failures
 

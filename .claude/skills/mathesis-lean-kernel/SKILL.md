@@ -83,12 +83,20 @@ cd "$LEAN_ENV_DIR" && lake env lean /abs/path/to/File.lean
 **Prefer no Mathlib when the mathematics is elementary.** A dependency-free file cold-builds in
 seconds and cannot be broken by another stream's build state.
 
+**Different checkouts have different built subsets, and neither is complete.** In this program,
+`MechanicaFluidorum/lean_src` has `Analysis.Calculus.Deriv.*` and `SpecialFunctions.Log.Deriv`;
+`RajMathRecovery/dualscale/lean` does not. The same file fails against one and compiles against
+the other. **Before concluding a lemma does not exist, try every available provider** — an
+unbuilt module is reported as an unknown identifier, exactly like a nonexistent one.
+
 ## When a proof will not close
 
 In order:
 
 1. Re-read the statement. Is it *true*? Try to refute it at small parameters in exact
    arithmetic first — this is cheaper than proof effort and kills most bad conjectures.
+1b. **Check whether the lemma you need is merely unbuilt.** Try the other Mathlib checkouts
+   before treating a missing identifier as a mathematical obstruction.
 2. Check for a missing hypothesis. If the statement needs one it does not have, that is a
    finding about the statement, not a proof problem — escalate rather than adding it silently.
 3. Check junk values. Division or integral without a side condition?

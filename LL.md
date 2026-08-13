@@ -231,6 +231,64 @@ merely compiles is not a witness — it has to be the case you meant.
 
 ---
 
+## LL-13 — Which Mathlib you borrow determines what you can prove *(2026-08-13, Stream 0)*
+
+**What happened.** UC5's analytic bridge was recorded OPEN on the grounds that the calculus
+infrastructure was unavailable. It was available — in the *other* checkout.
+
+`Analysis.SpecialFunctions.Log.Deriv` and `Analysis.Calculus.Deriv.{Add,Mul}` are **not built**
+in `RajMathRecovery/dualscale/lean` and **are built** in `MechanicaFluidorum/lean_src`. Pointed
+at the first, the file does not compile. Pointed at the second, it compiles on the first attempt
+and the proof is nine lines.
+
+**Why this is worse than a missing dependency.** The failure mode is not "build error, install
+the module". Lean reports an unknown identifier, which is indistinguishable at a glance from
+*the lemma does not exist* or *the statement is false*. A missing module masquerades as a
+mathematical obstruction. The OPEN row was filed in good faith on exactly that confusion.
+
+**What it cost.** One deferral that should never have been one, plus the reasoning built on top
+of it: `LotkaVolterra.lean`'s docstring argued at length about why the step could not be taken.
+The argument was sound and the premise was wrong.
+
+**Rule.** Before recording a step as OPEN for want of infrastructure, **check every available
+build**, and record which ones were checked. "Not available" is a claim about the environment
+and it needs the same evidence as any other claim.
+
+**Rule.** The gate prints which Mathlib provider it resolved to. A borrowed dependency that is
+invisible in the output is one nobody will think to question.
+
+**Correction issued.** `docs/OWNER_BRIEF.md` D5 downgraded the K1 kernel-service task after
+observing that Stream 1 has its own build and does not need Stream 5's. That reasoning was
+correct about Stream 1 and incomplete about Stream 0, which owns no build at all and had just
+been silently constrained by the difference. Recorded as `MX-C-0005`; D5 partially reversed.
+
+---
+
+## LL-14 — The deferral was the most valuable thing in the campaign, and it was wrong *(2026-08-13, Stream 0)*
+
+**Observation, not an incident.** UC5 was designed to demonstrate honest deferral: prove the
+algebra, refuse to axiomatize the analysis, refuse the vacuous conditional restatement, file the
+gap as Tier C OPEN. As pedagogy it worked — the refusals are all correct and the precedent it
+cites (Stream 1's Tier C demotion) is real.
+
+Then the deferral turned out to be unnecessary, and closing it produced something the campaign
+did not otherwise have: **the first tier promotion in the ledger.** `MX-C-0004` → `MX-A-0011`,
+new identifier, `supersedes` recorded, the old row kept as the historical trace.
+
+Until that moment the promotion mechanism specified in `SPEC.md` §2.5 had never been exercised
+by anything. It was schema with no instance.
+
+**Rule.** A campaign should try to close its own OPEN rows before shipping, not because deferral
+is shameful but because **the promotion path is itself a mechanism that needs testing**, and an
+OPEN row is the only thing that can test it. A ledger with no promotions has an untested
+transition in it.
+
+**What stays true.** The refusals were right regardless. Had the calculus genuinely been
+unavailable, `axiom` and the tautological conditional would both still have been wrong answers.
+The lesson is about diligence in establishing the premise, not about the reasoning from it.
+
+---
+
 ## LL-5 **[inherited, Stream 1]** — "No `sorry` in the source" is not the gate
 
 **What happened.** Stream 1 caught **two** broken Lean proofs that a concurrent process's own

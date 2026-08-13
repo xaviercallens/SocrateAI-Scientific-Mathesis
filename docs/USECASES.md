@@ -25,7 +25,7 @@ ALL GATES PASS
 | 2 | Physics | 1-D elastic collision conserves `p` and `E` | `ElasticCollision.lean` | exact arithmetic vs. "agrees to 10⁻¹⁵" |
 | 3 | Biology | Hardy–Weinberg allele invariance | `HardyWeinberg.lean` | **model vs. world** |
 | 4 | Physics | Kepler III from the inverse-square law | `Kepler.lean` | the float ban improving the statement |
-| 5 | Biology | Lotka–Volterra conserved quantity | `LotkaVolterra.lean` | **the honest deferral** |
+| 5 | Biology | Lotka–Volterra conserved quantity | `LotkaVolterra.lean` + `LotkaVolterraFlow.lean` | **deferral, then promotion** |
 
 All five are Tier A over `ℚ`, footprints as declared, with a Tier B harness
 (`tests/tier_b_applications.py`) checking the same statements on enumerated exact data.
@@ -135,9 +135,18 @@ derivatives leaves a rational expression that is **identically zero**. Four term
 pairs. No calculus needed; `field_simp; ring` closes it. Verified over 15 625 exact parameter
 combinations at Tier B.
 
-**Not proved, and recorded as OPEN (Tier C).** That this expression *is* `dV/dt`. That needs the
-chain rule, the derivative of `Real.log`, ℝ rather than ℚ, and a solution concept for the ODE.
-Mathlib has the pieces; assembling them is real work and it is not done.
+**Initially deferred (Tier C, OPEN).** That this expression *is* `dV/dt` needs the chain rule,
+the derivative of `Real.log`, and ℝ rather than ℚ. It was filed as `MX-C-0004`, OPEN.
+
+**Then closed (Tier A).** The deferral rested on a premise nobody checked. The calculus modules
+are absent from one Mathlib checkout and **present in the other**; pointed at
+`MechanicaFluidorum/lean_src`, `conserved_along_flow` compiles on the first attempt and the
+proof is nine lines. `V` is now proved genuinely constant along any trajectory of the system —
+derivative exactly `0`, not "0 given that it is 0".
+
+`MX-C-0004` → **`MX-A-0011`**, new identifier, `supersedes` recorded, old row retained as the
+trace. **This is the first tier promotion in the ledger**, and until it happened the promotion
+rule in `SPEC.md` §2.5 was schema with no instance. See `LL.md` LL-13 and LL-14.
 
 **Two ways to fake it, both refused:**
 
@@ -152,7 +161,9 @@ verdict that bare `Prop → Prop` arrows *"completely bypass PDE theory. The Lea
 verifying a logical tautology (A → B → C)."* Its own stream accepted that. Repeating the pattern
 one file later would prove this repository does not read its own ledger.
 
-So: **`MX-A-0010`** for the algebra, **`MX-C-0004`** for the dynamical claim, OPEN.
+So: **`MX-A-0010`** for the algebra, **`MX-A-0011`** for the dynamics, and `MX-C-0004` kept as
+the record of the deferral. The refusals above were right regardless — had the calculus genuinely
+been missing, `axiom` and the tautological conditional would both still have been wrong answers.
 
 ---
 

@@ -107,6 +107,28 @@ The third is what justifies every `≠ 0` in the statement. Lean's junk-value co
 Artifact + `LEDGER.md` row + `ledger.jsonl` row + gate output, together. Run
 `./scripts/verify.sh` first; all four gates must be green.
 
+## Before you declare a wall — check the environment
+
+**"The infrastructure isn't available" is a claim, and it needs evidence like any other.**
+
+Lean reports a missing lemma as an unknown identifier, which looks identical to *the lemma does
+not exist* and to *your statement is false*. A module that was simply never built masquerades as
+a mathematical obstruction.
+
+This happened here. UC5's analytic step was filed OPEN because `HasDerivAt.log` appeared
+unavailable. It was unavailable in one Mathlib checkout and **present in the other**. Pointed at
+the second, the proof is nine lines and compiled first try. The deferral, and the paragraphs
+arguing for it, rested on a premise nobody checked.
+
+```bash
+# Check every provider before concluding anything is missing.
+for env in ~/xdev/*/lean_src ~/xdev/*/dualscale/lean; do
+  [ -d "$env/.lake" ] && echo "== $env" && (cd "$env" && lake env lean /tmp/probe.lean 2>&1 | head -3)
+done
+```
+
+Record which environments you checked. Then, if it is genuinely absent, defer.
+
 ## When you hit a wall — the honest exit
 
 If the last step needs infrastructure you do not have (ODE theory, measure theory, a real
@@ -116,11 +138,20 @@ Do not axiomatize it. Do not restate it conditionally as *"given `X`, and `X →
 `Y`"* — that compiles, carries no axioms, looks like Tier A, and is a tautology. Stream 1 shipped
 exactly that shape, was audited, and accepted **demotion to Tier C**.
 
-The Lotka–Volterra case is the worked example: the algebraic cancellation is Tier A and real;
-the claim that the cancelled expression *is* `dV/dt` is Tier C and OPEN, in a separate row.
+The Lotka–Volterra case is the worked example of *both halves*. The algebraic cancellation went
+in as Tier A; the claim that the cancelled expression *is* `dV/dt` went in as Tier C and OPEN, in
+a separate row — and was later **closed and promoted** once the environment turned out to have
+the calculus after all. Defer honestly, then go back and try to close it.
 
 **A campaign with no deferrals and no rejections has not been tested.** Report the ratio, not
 the count.
+
+**But try to close your OPEN rows before shipping.** Not because deferral is shameful — it is
+the correct move when the wall is real — but because **the promotion path is itself a mechanism
+that needs exercising**, and an OPEN row is the only thing that can exercise it. A ledger with
+no promotions has an untested transition in it. Closing UC5 produced this repository's first
+promotion (`MX-C-0004` → `MX-A-0011`), and until then §2.5's promotion rule was schema with no
+instance.
 
 ## Checklist
 

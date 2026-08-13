@@ -81,6 +81,14 @@ MX-B-0004  with  "supersedes": "MX-C-0001"
 This invalidates existing citations of the old id — deliberately. A stale citation becomes
 lexically wrong instead of silently wrong.
 
+**Worked instance.** `MX-C-0004` recorded the Lotka–Volterra analytic bridge as OPEN. When the
+step was later proved, it became **`MX-A-0011`** with `supersedes: "MX-C-0004"`, and the old row
+was *kept* — rewritten to point forward, not deleted. The historical trace is the point: a
+reader asking "was this always Tier A?" gets an answer.
+
+**Try to close your OPEN rows.** The promotion path needs exercising, and an OPEN row is the
+only thing that can exercise it. Before this promotion, §2.5's rule had never run on anything.
+
 ## Citing another stream
 
 1. Check the tier letter means what you think. Two streams currently use **B** for

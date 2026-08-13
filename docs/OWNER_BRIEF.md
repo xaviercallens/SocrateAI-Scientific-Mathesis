@@ -103,6 +103,31 @@ they encode — they are scaffolding, and the fix is to *relabel* the scaffoldin
 
 ---
 
+### Update, 2026-08-13 — D1 is wider than Stream 5
+
+Direct verification (`MX-C-0006`) found the same shape in two more streams. **The pattern is not
+bad mathematics — it is a status string that no check produces:**
+
+| Stream | The label | The artifact |
+|---|---|---|
+| RajMath | README: Rules R1–R5 "enforced by `dualscale_ci.yml`" | that file does not exist; 34 axioms, 2 `sorry` |
+| RajMath | `NAMAGIRI.lean` docstrings claim Hypothesis U and singularity prevention | `Prop := True`, proofs `by trivial`, `def Real := Float` |
+| TNN | dashboard: `"lean4_status": "PROVEN (Zero-Sorry)"` ×15 | a string **literal**; `TNN_Invariants.lean:46` contains `sorry` |
+| MechanicaFluidorum | — | **the counterexample**: audited itself and accepted demotion to Tier C |
+
+`NAMAGIRI.lean` is imported by nothing and gates nothing, so it contaminates no build — but it
+sits at the repository root claiming the programme's two central results.
+
+**Revised recommendation for D1.** The gate is the same in all three cases and installing it is
+the same day of work. Do it once, in a form all streams can call — which is what
+`scripts/check_footprints.py` already is. Then the labels either become true or become visibly
+false, and either outcome is progress.
+
+**One more item for the ratio.** Stream 4 (Hypergraph) is **unmeasured** and is the only stream
+that is not a git repository, so it has no history to audit against. That is not a clean bill.
+
+---
+
 ## D2 — Do the statement-adequacy audit of Stream 0's Lean core (`PLAN.md` A1)
 
 **Recommendation.** Timebox one hour. Three questions, answered in writing in

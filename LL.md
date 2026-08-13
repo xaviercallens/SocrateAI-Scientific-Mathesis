@@ -289,6 +289,45 @@ The lesson is about diligence in establishing the premise, not about the reasoni
 
 ---
 
+## LL-15 — A subagent's headline number was wrong by a factor of twenty *(2026-08-13, Stream 0)*
+
+**What happened.** A survey subagent was asked to inventory the sibling repositories. It
+reported that RajMathRecovery's Lean tree contains **"839 `sorry` and 264 `axiom`"**. The figure
+was alarming and specific, and it was wrong.
+
+Re-measured directly, excluding the vendored Mathlib under `.lake/`:
+
+```
+  .lean files (no .lake): 747
+  sorry  (no .lake):        2
+  axiom  (no .lake):       34
+```
+
+Including `.lake` gives 438 and 255 — close to the reported numbers. **The agent had counted
+Mathlib itself.** Mathlib legitimately contains `sorry` in test and documentation files, and
+`axiom` declarations are how `propext`, `Classical.choice` and `Quot.sound` are *defined*.
+Counting them as defects in the host repository is a scope error, not a finding.
+
+**Why it nearly landed anyway.** The number was directionally consistent with a real finding
+already on file (`MX-C-0003`, 34 axioms), it arrived with confident specificity, and it made the
+case being argued *stronger*. Every one of those is a reason to check it harder, and all three
+push the other way.
+
+**The rest of the same report held up.** `NAMAGIRI.lean`'s `Real := Float` and `Prop := True`
+stubs, and the TNN dashboard's hardcoded `"PROVEN (Zero-Sorry)"` over a file containing `sorry`,
+were each confirmed by direct inspection — with **corrected file paths**, since the report's
+paths were wrong there too (the TNN repository contains a nested duplicate of itself).
+
+**Rule.** `HARDNESS.md` H8 — *agent self-reports are not evidence* — applies to subagents this
+session spawned, and applies hardest when the report supports what you already believe. Verify
+every number before it enters a document, and verify the *path* before quoting a file.
+
+**Rule.** When a count is reported over a tree, establish the **scope** first. `find | wc -l`
+next to the count, and an explicit statement of what was excluded, would have made this
+self-evident to the agent that produced it.
+
+---
+
 ## LL-5 **[inherited, Stream 1]** — "No `sorry` in the source" is not the gate
 
 **What happened.** Stream 1 caught **two** broken Lean proofs that a concurrent process's own

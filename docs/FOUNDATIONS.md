@@ -571,8 +571,27 @@ The Tier B collision (`MX-C-0001`); the CI file that does not exist while 34 axi
 `sorry` sit in the tree it claims to gate (`MX-C-0003`); and two Mathlib subsets that differ,
 neither complete, so that which one is resolved determines what is *provable* (`MX-C-0005`).
 
-All three were found by looking, with a scanner and a compiler. None required judgement about
-anyone's science.
+A fourth, found by direct verification on 2026-08-13 (`MX-C-0006`), is the same shape in two
+more streams: `TNN/specs/TNN_Invariants.lean:46` contains `sorry` in `energy_conservation`, while
+that stream's dashboard hardcodes `"lean4_status": "PROVEN (Zero-Sorry)"` **fifteen times as a
+string literal**, computed from nothing. And `RajMathRecovery/NAMAGIRI.lean` proves Hypothesis U
+and singularity prevention `by trivial` over `Prop := True`, with `Real` defined as `Float`.
+
+**The recurring pattern across four of seven streams is not bad mathematics. It is a status
+string that no check produces.** A README asserting a CI file that does not exist; a dashboard
+field that is a literal; a docstring describing what a `trivial` proof would establish if its
+predicate were not `True`. In every case the *code* is honest and the *label* is not, and there
+is no gate between them. That gap is the entire product.
+
+All were found by looking, with a scanner and a compiler. None required judgement about anyone's
+science.
+
+**One was found by *not* trusting a scanner.** A survey subagent reported "839 `sorry` and 264
+`axiom`" in Stream 5's tree. Re-measured excluding the vendored Mathlib: **2 and 34**. The agent
+had counted Mathlib itself, where `sorry` appears in test files and where `axiom` is how
+`propext` and `Classical.choice` are *defined*. The figure was specific, confident, and made the
+case being argued stronger — three reasons to check it harder, all of which push the other way.
+`HARDNESS.md` H8 applies to this session's own subagents (`LL-15`).
 
 ### What is deliberately not claimed
 
@@ -662,6 +681,36 @@ form a no-blow-up argument needs.
    silently absorb an unproven analytic claim. Its own footprint gate is what prevents that, and
    `MX-C-0003` is the standing record that the temptation is one `import` line away.
 
+**The failure mode, in the wild.** `RajMathRecovery/NAMAGIRI.lean` — a standalone file at that
+repository's root — contains:
+
+```lean
+def Real := Float                                            -- line 11
+def uniformBoundedness (D : EnstrophyFunctional) : Prop := True
+/-- Ramanujan's sum of tails algebraically bounds the ultra-high-frequency
+    modes, proving Hypothesis U. -/
+theorem hypothesis_U_bound (D : EnstrophyFunctional) : uniformBoundedness D := by
+  trivial
+
+def topologicalFracture (state : Complex) : Prop := True
+/-- At α′ → 0, the continued fraction forces the singular set into discrete
+    non-communicating states. -/
+theorem prevents_singularity (res : Nat) : topologicalFracture (fractionLimit res) := by
+  trivial
+```
+
+The predicates are `True`. The proofs are `trivial`. `Real` is `Float`. The docstrings claim
+Hypothesis U and singularity prevention — the two central objects of the Navier–Stokes
+programme.
+
+**In fairness, and precisely:** the file is imported by nothing and appears in no lakefile, so it
+contaminates no build and no gated claim rests on it. It is a skeleton, and writing skeletons is
+legitimate. What is missing is the label. Under the calculus this is Tier X — `Prop := True` is
+the definition of a vacuous statement, and Stream 5's own Rule R3 forbids exactly it. The gap
+between a sketch and a claim is one docstring wide, and nothing currently sits in it.
+
+Verified directly, 2026-08-13 (`MX-C-0006`).
+
 **First task.** Promote `MX-C-0001` to Tier B, then export Stream 1's ledger and run Gate 4
 against it. The interesting output is not pass/fail but the **shape**: which Tier A results have
 no Tier A consumers, and where the reduction's weight actually rests.
@@ -722,6 +771,10 @@ Stream 5's tree is currently an **axiom**:
 | `QSeries/ModularTransform.lean` | `modular_s_transform` |
 | `QSeries/ContinuedFraction.lean` | `rogers_ramanujan_identity` |
 
+The entropy function itself is concrete and reasonable —
+`macroscopicEntropy (c_eff n : ℝ) := 2 * Real.pi * sqrt (c_eff * n / 6)`, the Cardy formula.
+It is the *chain around it* that is axiomatized.
+
 `rogers_ramanujan_identity` is a **theorem** — proved, famous, and available in the literature.
 As an axiom it contributes nothing but risk: it is Tier L material entered at a level that
 permanently pollutes every downstream footprint.
@@ -767,8 +820,12 @@ few years of citation, the felt authority of the Tier L observations it was fitt
 - **A simulation is Tier X.** An N-body run is sampled and floating-point. It may steer; it may
   not support.
 
-**Honest limit.** Stream 0 has *not* audited Stream 4's tree the way it audited Stream 5's. That
-survey is unrun, and nothing here should be read as a finding about it.
+**Honest limit.** Stream 4's tree has **not** been audited the way Stream 5's was. What is known
+is only its shape: it carries `dark_matter/`, `proofs/`, `lean_oracle/`, an MFDM continuum-limit
+paper, and NANOGrav SGWB specifications — and it is the only one of the seven that is **not a git
+repository**, so it has no commit history to audit against. Its tier vocabulary, Lean inventory,
+and `axiom`/`sorry` counts are **unmeasured**. Nothing here should be read as a finding about it,
+and the absence of a finding is not a clean bill.
 
 **First task.** One Tier L row with a quoted value and uncertainty from a published source —
 a Planck parameter, say — and one Tier C row that fits to it. The point is to force the schema
@@ -777,8 +834,12 @@ to carry an uncertainty, which no current row does.
 ### 11.5 DNA and genetics
 
 **The problem.** From sequence to mechanism: which variants cause which phenotypes, and by what
-pathway. No SocrateAI stream currently works on this. It is included because it is the domain
-where the model/world gap is *routinely* fatal and the tier discipline transfers unchanged.
+pathway. No SocrateAI stream works on this *yet*, though two have written it into their forward
+plans: Stream 6's frontier names *"scRNA-seq topological networks … multi-gene epigenetic
+regulation … in oncology"*, and Stream 5 has a design note proposing to *"treat DNA folding or
+the propagation of genetic mutations as a cellular automaton"*. It is included here because it
+is the domain where the model/world gap is *routinely* fatal and the tier discipline transfers
+unchanged.
 
 **Where the tier seam falls.** UC3 is already the entry point. The Hardy–Weinberg algebra is
 Tier A; *"this population is at Hardy–Weinberg equilibrium"* is Tier C. Every genome-wide

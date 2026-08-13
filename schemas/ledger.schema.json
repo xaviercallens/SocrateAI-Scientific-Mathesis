@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/xaviercallens/SocrateAI-Scientific-Mathesis/schemas/ledger.schema.json",
+  "title": "Mathesis ledger row",
+  "description": "One claim in a SocrateAI stream's ledger. A claim absent from its stream's ledger has no tier and may not be cited (SPEC.md §0). Note: this schema constrains the shape of a single row; the SOUNDNESS of the ledger as a whole -- no claim filed above anything it transitively rests on -- is not expressible in JSON Schema and is enforced by scripts/verify.sh Gate 4, mirroring lean/Mathesis/TierCalculus.lean.",
+  "type": "object",
+  "required": ["id", "tier", "statement", "evidence_kind"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "description": "<STREAM>-<TIER>-<NNNN>. The tier letter is part of the identifier so that a promotion changes the id and a stale citation elsewhere becomes lexically wrong rather than silently wrong (SPEC.md §2.5).",
+      "type": "string",
+      "pattern": "^(MX|MF|AE|QK|HG|RM|TN|VD)-[XCLBA]-[0-9]{4}$"
+    },
+    "tier": {
+      "description": "Citation strength. Must agree with the letter in `id` -- Gate 4 reports E-TIERMATCH otherwise.",
+      "type": "string",
+      "enum": ["X", "C", "L", "B", "A"]
+    },
+    "statement": {
+      "description": "What is claimed, in one self-contained sentence. No adjectives (PLAN.md §2). A reader must be able to tell what would falsify it without opening the artifact.",
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_kind": {
+      "description": "How the claim was established. This CAPS the tier: a `citation` row may not be filed above L however distinguished the source, and an `llm_output` row may not be filed above X however convincing the output (SPEC.md §0).",
+      "type": "string",
+      "enum": ["lean_axioms", "exact_harness", "citation", "argument", "numeric", "llm_output"]
+    },
+    "supports": {
+      "description": "Ids this claim rests on. The tier of this row must not exceed the tier of anything reachable through this list, transitively (MX-A-0003).",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(MX|MF|AE|QK|HG|RM|TN|VD)-[XCLBA]-[0-9]{4}$"
+      },
+      "default": []
+    },
+    "artifact": {
+      "description": "Path to the thing a gate can re-run: a Lean file and declaration names, a harness path, or a citation with the quoted theorem statement for Tier L.",
+      "type": ["string", "null"]
+    },
+    "stream": {
+      "description": "Human-readable stream name. Redundant with the id prefix, kept for legibility.",
+      "type": ["string", "null"]
+    },
+    "audited_by": {
+      "description": "Who signed the statement-adequacy audit, and when. Null means NOT AUDITED -- for a Tier A row that means the kernel checked the proof but nobody has yet certified the statement means what its gloss claims (SPEC.md §0). Never set this to a model.",
+      "type": ["string", "null"]
+    },
+    "supersedes": {
+      "description": "The id this row replaces, typically after a tier promotion changed the identifier. The trail is how a retraction can be traced.",
+      "type": ["string", "null"],
+      "pattern": "^(MX|MF|AE|QK|HG|RM|TN|VD)-[XCLBA]-[0-9]{4}$"
+    }
+  }
+}

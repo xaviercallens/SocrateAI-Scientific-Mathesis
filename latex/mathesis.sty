@@ -1,0 +1,115 @@
+%% mathesis.sty — the programme notation standard, v1
+%% SPEC-STREAM0 §5. One symbol table, three columns that must never diverge:
+%% LaTeX macro here, meaning in docs/NOTATION.md, Lean identifier in lean/.
+%%
+%% First-use rule (normative): a symbol may appear in prose only if its row
+%% exists in docs/NOTATION.md. No new symbol without a definitional anchor.
+%%
+%% Usage:  \usepackage{mathesis}
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mathesis}[2026/08/13 v1.0 SocrateAI Mathesis notation standard]
+
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsthm}
+\RequirePackage{xcolor}
+
+%% ---------------------------------------------------------------------------
+%% 1. Programme symbols  (Lean identifier given in the comment; keep in sync)
+%% ---------------------------------------------------------------------------
+
+%% Mathesis.Scale.Reff — T-dual effective radius max(R, α'/R)
+\newcommand{\Reff}[2]{R_{\mathrm{eff}}\!\left(#1,#2\right)}
+
+%% the fundamental length √α' — "the seam". Derived, no Lean identifier.
+\newcommand{\seam}{\sqrt{\alpha'}}
+
+%% Mathesis.Sym2.Recurrence — the symmetric-square lock
+\newcommand{\Sym}{\operatorname{Sym}}
+\newcommand{\symlock}{\Sym^{2}(L_{2}) = L_{3}}
+
+%% Mathesis.Statements.HypothesisU
+%% The quantifier order is NORMATIVE: ∃C ∀cutoff, never ∀cutoff ∃C. The whole
+%% content of the hypothesis is uniformity in the cutoff; swapping the
+%% quantifiers yields a statement that typechecks and says much less.
+\newcommand{\HypU}{\mathrm{(U)}}
+
+%% Mathesis.Complexes.* — interaction complex, locked subcomplex
+\newcommand{\Xcomplex}[1]{X_{#1}}
+\newcommand{\Xlocked}[2]{X_{#1}^{#2}}
+
+%% Mathesis.Dyadic.* — enstrophy, production sum
+\newcommand{\enstrophy}{\Omega}
+\newcommand{\prodsum}[1]{S_{#1}}
+
+%% Mathesis.Fiber.* — discriminant, coupling mass 1/|disc|
+\DeclareMathOperator{\disc}{disc}
+\newcommand{\cmass}{m_{c}}
+
+%% ---------------------------------------------------------------------------
+%% 2. Epistemic marks
+%%
+%% "theorem" is reserved for Tier A; "verified" is reserved for kernel or
+%% exact-arithmetic gates. These macros exist so the reservation is visible in
+%% the source rather than remembered.
+%% ---------------------------------------------------------------------------
+
+\definecolor{mathesisverified}{RGB}{0,110,60}
+\definecolor{mathesisunverified}{RGB}{150,90,0}
+
+%% \tier{A} … \tier{X}
+\newcommand{\tier}[1]{\textsf{\footnotesize[Tier~#1]}}
+
+%% \lean{Mathesis.Scale.Reff_tdual} — names the declaration a claim rests on
+\newcommand{\lean}[1]{\texttt{\footnotesize #1}}
+
+%% Citation marks. VERIFIED means a gate accepted it, here, reproducibly.
+\newcommand{\VERIFIED}[1][]{%
+  \textcolor{mathesisverified}{\textsf{\footnotesize VERIFIED\if\relax\detokenize{#1}\relax\else~(#1)\fi}}}
+\newcommand{\unverified}[1][]{%
+  \textcolor{mathesisunverified}{\textsf{\footnotesize[unverified\if\relax\detokenize{#1}\relax\else~--~#1\fi]}}}
+
+%% ---------------------------------------------------------------------------
+%% 3. Theorem environments with Lean tags
+%%
+%% \begin{mtheorem}{Reff_tdual}  ... \end{mtheorem}
+%% The mandatory argument is the Lean declaration name. A theorem environment
+%% with no Lean tag is a `mclaim`, not a theorem -- the environments enforce
+%% the vocabulary reservation above.
+%% ---------------------------------------------------------------------------
+
+\theoremstyle{plain}
+\newtheorem{mtheorem@inner}{Theorem}
+\newtheorem{mlemma@inner}[mtheorem@inner]{Lemma}
+\theoremstyle{definition}
+\newtheorem{mdefinition@inner}[mtheorem@inner]{Definition}
+\newtheorem{mclaim@inner}[mtheorem@inner]{Claim}
+
+\newenvironment{mtheorem}[1]
+  {\begin{mtheorem@inner}\ \tier{A}~\lean{#1}\par\nobreak\ignorespaces}
+  {\end{mtheorem@inner}}
+
+\newenvironment{mlemma}[1]
+  {\begin{mlemma@inner}\ \tier{A}~\lean{#1}\par\nobreak\ignorespaces}
+  {\end{mlemma@inner}}
+
+\newenvironment{mdefinition}[1]
+  {\begin{mdefinition@inner}\ \lean{#1}\par\nobreak\ignorespaces}
+  {\end{mdefinition@inner}}
+
+%% For anything not Tier A. The tier is a MANDATORY argument: an untiered claim
+%% in a programme paper is exactly what this package exists to prevent.
+\newenvironment{mclaim}[2]
+  {\begin{mclaim@inner}\ \tier{#1}~\textsf{\footnotesize #2}\par\nobreak\ignorespaces}
+  {\end{mclaim@inner}}
+
+%% ---------------------------------------------------------------------------
+%% 4. Quantifier-order helper
+%%
+%% Prose convention (normative): quantifier order is stated explicitly whenever
+%% a uniformity claim is made. This macro makes omitting it effortful.
+%% ---------------------------------------------------------------------------
+\newcommand{\uniformly}[1]{\text{uniformly in } #1}
+
+\endinput

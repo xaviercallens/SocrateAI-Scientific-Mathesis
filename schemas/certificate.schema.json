@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/xaviercallens/SocrateAI-Scientific-Mathesis/schemas/certificate.schema.json",
+  "title": "Mathesis computation certificate",
+  "description": "SPEC-STREAM0 §6.4. A certificate is a claim that a dumb exact checker can REPLAY. That is the whole definition of 'solver' in this programme: not a thing that computes an answer, but a thing that emits a record another program can independently re-decide. A certificate that cannot be replayed by a checker simpler than the producer is not a certificate.",
+  "type": "object",
+  "required": ["claim", "engine", "inputs_sha256", "replay_cmd", "negative_controls", "tier"],
+  "additionalProperties": false,
+  "properties": {
+    "claim": {
+      "description": "The statement being certified, self-contained and falsifiable. No adjectives. A reader must be able to tell what would refute it without running anything.",
+      "type": "string",
+      "minLength": 1
+    },
+    "engine": {
+      "description": "A = exact algebra (rational identity/inequality harness). B = enclosures (rounded-rational interval trajectories; claim form 'for all t in [0,T], state is in boxes'). C = PIVP / poly-algebraic compilation, which composes: its integration stage is an Engine B run.",
+      "type": "string",
+      "enum": ["A", "B", "C"]
+    },
+    "inputs_sha256": {
+      "description": "Digest of the exact inputs. Determinism is a hard requirement (HARDNESS.md H9): the same digest must yield the same verdict on any machine, or the certificate certifies nothing.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "replay_cmd": {
+      "description": "One command that re-decides the claim from the recorded inputs. Must exit 0 for PASS and non-zero for FAIL -- a replayer that only ever reports success is the checker-that-cannot-fail (HARDNESS.md H2).",
+      "type": "string",
+      "minLength": 1
+    },
+    "negative_controls": {
+      "description": "Controls demonstrated to FAIL. At least one is required. The control that counts is the plausible near-miss -- a tampered certificate, a perturbed identity, an honest-failure case (e.g. inviscid blow-up for Engine B) -- not obvious garbage.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "tier": {
+      "description": "B for a replayed exact-arithmetic claim. B-dyn for an enclosure certificate. NOTE: whether B-dyn may ever gate a tier promotion is an OPEN question reserved to the human owner (SPEC-STREAM0 §11); until it is settled, B-dyn is recorded and not relied upon. B-dyn's position in the tier order is likewise unsettled -- see docs/designs/RECONCILIATION.md §2.1.",
+      "type": "string",
+      "enum": ["B", "B-dyn"]
+    },
+    "meta": {
+      "description": "Reproduction context. Absent versions make a failed replay undiagnosable a year later, which is when replays are actually attempted.",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "tool_versions": { "type": "string" },
+        "date": { "type": "string" },
+        "generating_cmd": { "type": "string" },
+        "runtime_seconds": { "type": "number" }
+      }
+    },
+    "ledger_id": {
+      "description": "The claim id this certificate justifies. A certificate with no ledger row supports nothing that may be cited (SPEC.md §0).",
+      "type": ["string", "null"],
+      "pattern": "^(MX|MF|AE|QK|HG|RM|TN|VD)-[XCLBA]-[0-9]{4}$"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+# Rust
+rust/*/target/
+
+# Lean
+.lake/
+*.olean
+*.ilean
+*.trace
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Scratch — no versioned copies, no scratch files in tracked trees (SPEC.md §7.4)
+*.tmp
+corpus/
+
+# Local Claude Code settings and transients
+.claude/settings.local.json
+.claude/*.tmp.*

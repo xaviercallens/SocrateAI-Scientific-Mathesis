@@ -1,0 +1,22 @@
+[package]
+name = "mathesis-verify"
+version = "0.1.0"
+edition = "2021"
+description = "Independent ledger checker for SocrateAI Stream 0 (Mathesis). Second implementation of the tier calculus; see SPEC.md §7.3."
+license = "MIT"
+
+# No dependencies, deliberately. SPEC.md §7.3: the differential gate is
+# worthless if this crate and the Python reference share a library. If you are
+# about to add one here, read that rule first.
+[dependencies]
+
+[lib]
+name = "mathesis_verify"
+path = "src/lib.rs"
+
+[[bin]]
+name = "mathesis-verify"
+path = "src/main.rs"
+
+[profile.release]
+panic = "abort"

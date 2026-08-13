@@ -38,7 +38,31 @@ LEAN_DIR = ROOT / "lean"
 DEFAULT_ENV = Path.home() / "xdev/SocrateAI-Scientific-RajMathRecovery/dualscale/lean"
 
 DIRECTIVE = re.compile(r"MATHESIS-GATE:\s*(\w+)(?:\(([^)]*)\))?\s*=\s*(.*)")
-FOOTPRINT = re.compile(r"^'(?P<decl>[^']+)' (?:depends on axioms: \[(?P<axioms>[^\]]*)\]|(?P<none>does not depend on any axioms))")
+
+#: Matched against the WHOLE compiler output, never line by line.
+#:
+#: Lean wraps `#print axioms` output when the declaration name plus footprint
+#: exceeds its line width, e.g.
+#:
+#:     'Foo.Bar.kinetic_energy_conserved' depends on axioms: [propext,
+#:      Classical.choice,
+#:      Quot.sound]
+#:
+#: A line-anchored version of this pattern silently skipped every wrapped
+#: declaration -- see LL.md LL-11. Because wrapping is triggered by long names,
+#: it hid precisely the deeply-namespaced declarations in new modules. The
+#: negated character class already spans newlines, so matching over the full
+#: output is all that is required.
+FOOTPRINT = re.compile(
+    r"'(?P<decl>[^']+)' "
+    r"(?:depends on axioms: \[(?P<axioms>[^\]]*)\]"
+    r"|(?P<none>does not depend on any axioms))"
+)
+
+#: Every `#print axioms` in the source must produce exactly one parsed
+#: footprint. This is the structural guard: it converts "the parser silently
+#: dropped one" from an invisible failure into a gate failure.
+PRINT_AXIOMS = re.compile(r"^\s*#print\s+axioms\s+\S+", re.MULTILINE)
 
 
 class Contract:
@@ -109,10 +133,7 @@ def check(path: Path) -> list[str]:
         failures.append(f"{rel}: uses sorry")
 
     printed = 0
-    for line in output.splitlines():
-        match = FOOTPRINT.match(line.strip())
-        if match is None:
-            continue
+    for match in FOOTPRINT.finditer(output):
         printed += 1
         decl = match.group("decl")
         actual = set() if match.group("none") else {
@@ -126,21 +147,90 @@ def check(path: Path) -> list[str]:
                 f"declared allowlist for this declaration is {sorted(allowed) or '[]'}"
             )
 
-    if printed == 0:
+    requested = len(PRINT_AXIOMS.findall(path.read_text(encoding="utf-8")))
+    if requested == 0:
         failures.append(f"{rel}: printed no axiom footprints — add `#print axioms` lines")
+    elif printed != requested:
+        # The parser dropped something the source asked for. Never trust the
+        # remaining results from this file: an unparsed footprint is an
+        # unchecked declaration, which is indistinguishable from a passing one.
+        failures.append(
+            f"{rel}: source has {requested} `#print axioms` directive(s) but only "
+            f"{printed} footprint(s) parsed — {requested - printed} declaration(s) "
+            "went unchecked (LL-11)"
+        )
     elif not failures:
-        print(f"  {rel}: {printed} footprint(s) as declared (env={contract.env})")
+        print(f"  {rel}: {printed}/{requested} footprint(s) as declared (env={contract.env})")
 
     return failures
 
 
+def _parse(output: str) -> dict[str, set[str]]:
+    """Parser under test, isolated so the self-tests exercise the real thing."""
+    result: dict[str, set[str]] = {}
+    for match in FOOTPRINT.finditer(output):
+        axioms = set() if match.group("none") else {
+            a.strip() for a in match.group("axioms").split(",") if a.strip()
+        }
+        result[match.group("decl")] = axioms
+    return result
+
+
+def self_test() -> list[str]:
+    """Controls for the parser, run on every invocation.
+
+    Gate 2 has no negative-control harness of its own -- it *is* the harness --
+    so its controls live here and are never skipped. LL-11 is the incident that
+    made this necessary: the parser silently dropped wrapped declarations and
+    reported PASS, which is the worst available failure mode for a gate.
+    """
+    problems: list[str] = []
+
+    def expect(condition: bool, label: str) -> None:
+        if not condition:
+            problems.append(f"GATE 2 SELF-TEST FAILED: {label}")
+
+    flat = "'A.b' depends on axioms: [propext, Quot.sound]\n"
+    expect(_parse(flat) == {"A.b": {"propext", "Quot.sound"}}, "flat footprint parses")
+
+    # The exact shape that defeated the previous implementation.
+    wrapped = (
+        "'A.kinetic_energy_conserved' depends on axioms: [propext,\n"
+        " Classical.choice,\n"
+        " Quot.sound]\n"
+    )
+    expect(
+        _parse(wrapped) == {"A.kinetic_energy_conserved": {"propext", "Classical.choice", "Quot.sound"}},
+        "WRAPPED footprint parses (LL-11)",
+    )
+
+    expect(_parse("'A.c' does not depend on any axioms\n") == {"A.c": set()},
+           "axiom-free footprint parses as empty, not as missing")
+
+    both = flat + wrapped
+    expect(len(_parse(both)) == 2, "flat and wrapped footprints both counted in one output")
+
+    expect(len(PRINT_AXIOMS.findall("#print axioms foo\n  #print axioms bar\n")) == 2,
+           "directive counter finds indented directives")
+    expect(len(PRINT_AXIOMS.findall("-- #print axioms commented\n")) == 0,
+           "directive counter ignores a commented-out directive")
+
+    return problems
+
+
 def main() -> int:
+    failures = self_test()
+    if failures:
+        print(f"FAIL  Gate 2 ({len(failures)} self-test failure(s)) — the checker is broken")
+        for failure in failures:
+            print(f"  - {failure}")
+        return 1
+
     modules = sorted(LEAN_DIR.rglob("*.lean"))
     if not modules:
         print("FAIL  Gate 2: no Lean modules found — an empty gate is not a gate")
         return 1
 
-    failures: list[str] = []
     for module in modules:
         failures.extend(check(module))
 

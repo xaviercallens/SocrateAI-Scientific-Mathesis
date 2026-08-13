@@ -78,6 +78,13 @@ adjudicating which is right*, because that is a question for a human.
 It earned its keep immediately: it caught a real divergence on its first run
 ([`LL.md`](LL.md) LL-1).
 
+**Five worked use cases.** Elementary claims in mathematics, physics, and biology, run end to
+end — sum of odd numbers, elastic collision, Hardy–Weinberg, Kepler's third law, Lotka–Volterra.
+Each is Tier A over ℚ with an exact-arithmetic harness checking the same statement, and the last
+one is **deliberately partial**: its algebra is proved and its analytic step is recorded as OPEN
+rather than axiomatized. Running them found three defects in the gates, two of which would have
+stayed invisible — see [`docs/USECASES.md`](docs/USECASES.md).
+
 ## Layout
 
 ```
@@ -87,11 +94,13 @@ LEDGER.md        claim inventory            ROADMAP.md    staged plan
 ledger.jsonl     the same, machine-readable LL.md         lessons learned, with evidence
 
 lean/Mathesis/   Tier A core — Mathlib-free, cold-builds in ~2s
+  Applications/  five worked use cases: maths, physics, biology
 python/mathesis/ reference checker — standard library only, no floats
 rust/            independent checker — zero dependencies, by design
 tests/           Tier B harnesses + the differential corpus
 scripts/         verify.sh — the four gates
 docs/            VISION · STREAM_MAP · TIER_CALCULUS · CLAUDE5_LOOP
+                 USECASES · APPLICATIONS_FRONTIER · OWNER_BRIEF
 .claude/skills/  skills for agents working across the streams
 ```
 

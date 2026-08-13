@@ -159,6 +159,78 @@ Gate 3 caught a real divergence, `LL-1`). Gate 4's was missing and is now record
 
 ---
 
+## LL-11 — Gate 2 silently skipped every theorem whose footprint wrapped *(2026-08-13, Stream 0)*
+
+**What happened.** `check_footprints.py` matched `#print axioms` output line by line, anchored
+with `^`. Lean wraps that output when the declaration name plus footprint exceeds its line
+width:
+
+```
+'Mathesis.Applications.ElasticCollision.kinetic_energy_conserved' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+```
+
+The wrapped form has no closing bracket on its first line, so the pattern did not match and the
+declaration was **skipped without comment**. Gate 2 reported `ElasticCollision.lean: 1
+footprint(s) as declared` for a file with two theorems, and passed.
+
+**Why it is the worst available failure mode.** Not a false alarm — a *false all-clear*, in the
+gate that is the sole evidence for every Tier A row. And it was biased: wrapping is triggered by
+long names, so it hid precisely the deeply-namespaced declarations in new modules, which are the
+ones least likely to have been read carefully.
+
+**How it was found.** Not by the gate. By noticing that the compiler output for a new file had
+three lines where the others had one, and checking what the gate made of it. Nothing in the
+suite would have reported it, because the gate's own output — a count — was the only symptom,
+and there was nothing to compare the count against.
+
+**Fix, in two parts.** The pattern now runs over the whole output rather than per line. More
+importantly, the gate now counts `#print axioms` **directives in the source** and fails if that
+differs from the number of footprints parsed. That converts "the parser dropped one" from an
+invisible condition into a gate failure. A theorem you forget to print is now also a failure.
+
+**Rule.** A checker that reports a count must have something to check the count *against*.
+A number with no expected value attached is decoration — it looks like evidence and cannot
+disagree with anything.
+
+**Rule.** Gates need negative controls too. Gate 2 is the harness, so it now runs parser
+self-tests on every invocation, including the exact wrapped-output shape that defeated it. They
+cannot be skipped because they run before any file is examined.
+
+**Also found by the same audit.** Two theorems — `Tier.X_le` and `witnessChain_reach` — had no
+`#print axioms` line at all and had therefore never been checked by Gate 2 since they were
+written. Closed. The directive-count guard is what makes that class of omission impossible to
+repeat.
+
+---
+
+## LL-12 — Three non-vacuity witnesses were wrong on the first attempt *(2026-08-13, Stream 0)*
+
+**What happened.** While building the five application use cases, three witnesses required by
+`HARDNESS.md` H5 were written by inspection and were all wrong:
+
+1. `preyRate 2 1 3 2 = -4` — the actual value is **0**, because `α − βy = 0` at those
+   parameters. The witness intended to show "the terms are individually non-zero, so the
+   cancellation is real" would have exhibited the one case that demonstrates nothing.
+2. `(1/2)² + 2(1/2)(1/2) + (1/2)² ≠ 1` — offered as "frequencies that do not sum to one", but
+   `½ + ½ = 1`, so the expression *is* 1 and the claimed counterexample is false.
+3. `dVdt 2 1 1 1 0 2 ≠ 0` — at `x = 0` the expression **is** zero, because `α − βy = 0` makes
+   the junk value coincide with the limit. Correct at `y = 1`, where it is 1.
+
+All three were caught by the kernel with `⊢ False`. Cost: three compile cycles. A thirty-second
+`Fraction` computation would have caught all three before the file was written.
+
+**Why they were all the same mistake.** Each picked a "generic-looking" parameter set without
+evaluating it. Degenerate cases are not rare in small hand-chosen integers — they are *common*,
+because the small values that are easy to type are the ones where things cancel.
+
+**Rule.** Compute non-vacuity witnesses in exact arithmetic before writing them into Lean. The
+kernel is a correct but slow way to discover you picked the degenerate case, and a witness that
+merely compiles is not a witness — it has to be the case you meant.
+
+---
+
 ## LL-5 **[inherited, Stream 1]** — "No `sorry` in the source" is not the gate
 
 **What happened.** Stream 1 caught **two** broken Lean proofs that a concurrent process's own

@@ -253,6 +253,8 @@ Gate 2 greps these lines. Every one must print `[]`. -/
 #print axioms Tier.eq_A_of_A_le
 #print axioms Tier.le_antisymm
 #print axioms Depends.trans
+#print axioms Tier.X_le
+#print axioms witnessChain_reach
 #print axioms tier_le_of_depends
 #print axioms no_kernel_claim_rests_on_weaker
 #print axioms not_A_of_weak_support

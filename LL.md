@@ -328,6 +328,34 @@ self-evident to the agent that produced it.
 
 ---
 
+## LL-18 — The float ban caught its own advocate *(2026-08-14, Stream 0)*
+
+**What happened.** `tests/tier_b_selfdual.py` opens with a docstring arguing that the float ban
+*improves* statements — that being unable to write `√C` forces the better, squared form. Gate 1
+then rejected the file:
+
+```
+FAIL  tier_b_no_floats  (1 failure(s), 12 file(s) scanned)
+  - tests/tier_b_selfdual.py:51: float literal 0.5 (SPEC.md §4)
+```
+
+Line 51 was `r = int(n**0.5)` inside a helper deciding whether a rational is a perfect square —
+a float round-trip in the one routine whose entire job was to keep the harness exact. `math.isqrt`
+is the exact primitive and was always available. The five surrounding negative controls were
+correct; the defect was in the plumbing nobody thinks of as mathematics.
+
+**Why it is worth an entry.** Not because the mistake was interesting, but because of *where* it
+was. The prose was right, the checks were right, the controls were right, and the file was still
+wrong — and the only thing that noticed was a mechanical scan for the substring `0.5`. A rule you
+believe in is not a rule you comply with; an author arguing for a constraint is not exempt from
+being checked against it, and is arguably the likeliest to skip the check.
+
+**Rule.** Run the gate on your own artifact *before* filing it, including when the artifact is
+about the gate. This one cost one line and thirty seconds because Gate 1 was already wired
+(LL-8); unwired, it would have shipped.
+
+---
+
 ## LL-17 — Two failed proofs arrived looking like nine successes, and the two worst findings were in the names *(2026-08-14, Stream 0)*
 
 **What happened.** An external session proposed `Mathesis/Duality/SelfDual.lean` — nine

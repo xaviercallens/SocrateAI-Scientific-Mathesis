@@ -45,7 +45,10 @@
      half. Taking the literature result as an explicit hypothesis parameter is
      exactly the prescribed way for a Tier A theorem to stand on a Tier L one
      (CLAUDE.md, MX-A-0004); naming the result after the theorem you assumed is
-     not. Hence `sqrt_le_max_of_le_mul_nat`, and see TARGET T-DS.
+     not. Hence `sqrt_le_max_of_le_mul_nat`. The Fourier statement was then
+     **proved** in `Duality/Uncertainty.lean` (2026-08-14), so the hypothesis is
+     no longer assumed — but the rename stands, because the name should say what
+     *this* theorem proves.
 
   2. There is NO Ising model here — no lattice, no partition function, no
      duality map. `sinh_selfDual_coupling` proves: if `sinh(2K)² = 1` and
@@ -249,13 +252,13 @@ theorem witness_sinh_selfDual_satisfiable :
 
 /-! ## TARGETS — stated, not asserted; nothing below is axiomatised
 
-TARGET T-DS (Donoho–Stark on `ZMod N`) — would discharge B.2's hypothesis.
-  For nonzero `x : ZMod N → ℂ`, `N ≤ (support x).card * (support (dft x)).card`.
-  Route: `‖x̂‖∞ ≤ √|supp x| · ‖x‖₂` by Cauchy–Schwarz over the support, then
-  Plancherel on `ZMod N`, then count the support of `x̂`. Needs
-  `Mathlib.Analysis.Fourier.ZMod`; check that module is BUILT in the resolved
-  `LEAN_ENV_DIR` before estimating (MX-C-0005: a missing module and a false
-  statement report identically).
+TARGET T-DS — **DISCHARGED 2026-08-14** in `Mathesis/Duality/Uncertainty.lean`.
+  `donoho_stark` proves `N ≤ |supp f| · |supp 𝓕f|` for nonzero `f : ZMod N → ℂ`,
+  so B.2 may now be applied to a *proved* product bound rather than an assumed
+  one, and `sqrt_le_max_support` states the resulting `√N` bound directly.
+  The load-bearing step was **Parseval on `ZMod N`**, which Mathlib does not
+  have; the two ingredients it does have are `AddChar.sum_mulShift` and
+  `sq_sum_le_card_mul_sum_sq`. Recorded as `MX-A-0013`/`MX-A-0014`.
 
 TARGET T-TAO (Tao 2005, `N` prime) — `|supp x| + |supp x̂| ≥ N + 1`, strictly
   stronger than Donoho–Stark on primes. Of interest here because arithmetic

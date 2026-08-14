@@ -1,5 +1,12 @@
 # Owner brief — decisions reserved to you
 
+> **DECIDED 2026-08-14.** D3 Tier L: **adopt**. D4 R3.4: **waive for `TierCalculus`, on the
+> record** (see `MX-C-0007` for the counter-argument, retained deliberately). Next task:
+> **package the gate** — done, `tools/mathesis-gate/`. Cross-stream posture: **open PRs**, not
+> report-only — which turned out to be possible for exactly one of the three affected streams;
+> see `MX-C-0008`.
+
+
 **Date:** 2026-08-13 · **From:** Stream 0 review · **Tier:** C (an argument about documents and
 trees; the underlying counts are reproducible via `tests/tier_b_axiom_hygiene.py --survey`)
 

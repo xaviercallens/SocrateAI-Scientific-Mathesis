@@ -1,0 +1,32 @@
+# Drop into .github/workflows/. Reports findings without failing the build until
+# you remove `--report-only`.
+name: mathesis-gate
+
+on: [push, pull_request]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # No install step: the gate is one stdlib-only file.
+      - name: Self-test the checker
+        run: python3 tools/mathesis-gate/mathesis_gate.py --self-test
+
+      - name: Axiom hygiene and vacuity
+        run: |
+          python3 tools/mathesis-gate/mathesis_gate.py . \
+            --lean-src lean \
+            --skip-footprints \
+            --report-only          # <-- delete this line to make the gate binding
+
+      # Footprints need a Lean toolchain and a Mathlib build. Enable once you
+      # have one in CI; until then the checks above run standalone in seconds.
+      # - name: Declared axiom footprints
+      #   run: |
+      #     python3 tools/mathesis-gate/mathesis_gate.py . \
+      #       --lean-src lean --lean-env .

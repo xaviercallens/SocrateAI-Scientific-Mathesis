@@ -95,6 +95,7 @@ PLAN.md          tasks, DoD, escalation     FRONTIER.md   TODO / NOTODO / Fronti
 LEDGER.md        claim inventory            ROADMAP.md    staged plan
 ledger.jsonl     the same, machine-readable LL.md         lessons learned, with evidence
 
+tools/           mathesis-gate — one portable file, drop into any Lean repo
 lean/Mathesis/   Tier A core — Mathlib-free, cold-builds in ~2s
   Applications/  five worked use cases: maths, physics, biology
 python/mathesis/ reference checker — standard library only, no floats
@@ -102,6 +103,7 @@ rust/            independent checker — zero dependencies, by design
 tests/           Tier B harnesses + the differential corpus
 scripts/         verify.sh — the four gates
 docs/            FOUNDATIONS — the paper: history, concepts, method, domains
+                 NEW_STREAM — onboarding a new stream (worked for QuantumFluids)
 latex/           foundations.tex + .pdf (18pp, XeLaTeX) · mathesis.sty
                  VISION · STREAM_MAP · TIER_CALCULUS · CLAUDE5_LOOP
                  USECASES · APPLICATIONS_FRONTIER · OWNER_BRIEF

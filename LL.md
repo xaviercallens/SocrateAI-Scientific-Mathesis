@@ -328,6 +328,63 @@ self-evident to the agent that produced it.
 
 ---
 
+## LL-17 — Two failed proofs arrived looking like nine successes, and the two worst findings were in the names *(2026-08-14, Stream 0)*
+
+**What happened.** An external session proposed `Mathesis/Duality/SelfDual.lean` — nine
+theorems, honestly flagged as "not compiled here", with three tactic names listed as the
+things to watch. Compiling it against Mathlib:
+
+```
+error: No goals to be solved                     -- eoq_lower_bound
+error: Unknown constant `Real.sinh_pos.mpr`      -- kramers_wannier_self_dual
+...
+'…eoq_lower_bound'            depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
+'…kramers_wannier_self_dual'  depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]
+```
+
+Seven of nine were correct as written. The two that failed **still defined their names**, with
+`sorryAx` in the footprint. The file contains no `sorry`; a source grep reports it clean. This
+is LL-5 arriving from outside rather than from our own keyboard, and it is the reason
+`CLAUDE.md` says the gate is `#print axioms` and never the absence of a word.
+
+Both defects were one line. `field_simp` had **already closed** the goal, so the following
+`ring` errored on an empty goal list — the same defect twice in the same file, since the EOQ
+attainment proof I added hit it a third time. And `Real.sinh_pos` does not exist; it is
+`Real.sinh_pos_iff`. Neither was in the list of three names flagged as risky.
+
+**The two findings that mattered were not defects at all.** They were in the *labels*:
+
+- A theorem named for **Donoho–Stark** whose entire Fourier content — `N ≤ |supp x|·|supp x̂|` —
+  was its own **hypothesis**. What it proved was `N ≤ a·b → √N ≤ max a b`, arithmetic. Taking a
+  literature result as an explicit hypothesis parameter is exactly the prescribed way for a
+  Tier A theorem to rest on a Tier L one. Naming the theorem after the part you assumed is how
+  that discipline gets undone: the ledger row would have read "Donoho–Stark, Tier A".
+- A theorem named for **Kramers–Wannier** in a file with no lattice, no partition function and
+  no duality map. It proves `sinh(2K)² = 1 ∧ K > 0 → K = log(1+√2)/2`. The value is right and
+  it is Onsager's critical coupling — but "self-duality locates the critical point" needs the
+  transition to be *unique*, which Kramers–Wannier assumed and Onsager proved, and which is
+  absent here.
+
+Both were renamed (`sqrt_le_max_of_le_mul_nat`, `sinh_selfDual_coupling`) and the physics
+reading filed separately at Tier C (`MX-C-0009`).
+
+**Rule.** A theorem name is a claim, and it is the claim people cite. The kernel checks the
+statement; nothing checks whether the name describes it. When a proposal names a result after a
+famous theorem, find that theorem in the statement — if it is above the turnstile as a
+hypothesis, the name is wrong, and it is wrong in the direction that inflates the tier.
+
+**Rule.** "Not compiled here" is not a caveat that transfers risk; it is a request. Compile it
+before reading it critically — two of the nine arguments were not worth auditing, and the
+compiler said which two in forty seconds.
+
+**Worth recording as the counter-example to our own cynicism.** Two supporting citations offered
+alongside the proposal were checked and are **real and correctly attributed** (Hirschel *et al.*,
+*Phys. Rev. D* **109**, 095011; Godfrin *et al.*, *Phys. Rev. B* **103**, 104516). LL-15 taught
+that a model's headline number can be wrong by 20×; it does not follow that everything a model
+reports is wrong. Check, then say which.
+
+---
+
 ## LL-16 — The paper asserted something false about its own central theorem *(2026-08-14, Stream 0)*
 
 **What happened.** Seven files, including the foundations paper and its typeset PDF, contained

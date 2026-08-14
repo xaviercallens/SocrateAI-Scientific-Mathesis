@@ -11,9 +11,15 @@
 \ProvidesPackage{mathesis}[2026/08/13 v1.0 SocrateAI Mathesis notation standard]
 
 \RequirePackage{amsmath}
-\RequirePackage{amssymb}
 \RequirePackage{amsthm}
 \RequirePackage{xcolor}
+
+%% amssymb and unicode-math both define \eth, \digamma and friends, and clash
+%% loudly if both are loaded. Under XeLaTeX/LuaLaTeX with unicode-math the
+%% symbols amssymb would provide are already present, so it is skipped; under
+%% pdflatex it is still required. Load mathesis AFTER unicode-math for this to
+%% resolve correctly.
+\@ifpackageloaded{unicode-math}{}{\RequirePackage{amssymb}}
 
 %% ---------------------------------------------------------------------------
 %% 1. Programme symbols  (Lean identifier given in the comment; keep in sync)

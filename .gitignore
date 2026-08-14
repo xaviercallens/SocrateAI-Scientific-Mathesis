@@ -19,3 +19,13 @@ corpus/
 # Local Claude Code settings and transients
 .claude/settings.local.json
 .claude/*.tmp.*
+
+# LaTeX build artifacts — the .tex and the built .pdf are tracked, nothing else
+latex/*.aux
+latex/*.log
+latex/*.out
+latex/*.toc
+latex/*.fls
+latex/*.fdb_latexmk
+latex/*.xdv
+latex/*.synctex.gz

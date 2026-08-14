@@ -100,6 +100,7 @@ rust/            independent checker — zero dependencies, by design
 tests/           Tier B harnesses + the differential corpus
 scripts/         verify.sh — the four gates
 docs/            FOUNDATIONS — the paper: history, concepts, method, domains
+latex/           foundations.tex + .pdf (18pp, XeLaTeX) · mathesis.sty
                  VISION · STREAM_MAP · TIER_CALCULUS · CLAUDE5_LOOP
                  USECASES · APPLICATIONS_FRONTIER · OWNER_BRIEF
 .claude/skills/  skills for agents working across the streams

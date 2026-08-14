@@ -1,0 +1,1077 @@
+%% foundations.tex — Mathesis: Foundations of a Tier Calculus for Scientific Claims
+%%
+%% Build:  latexmk -xelatex foundations.tex      (or ./build.sh)
+%% Engine: XeLaTeX is REQUIRED. The source contains Unicode mathematics
+%%         (ℚ ℝ α′ ω²r³ ‖∇u‖ ∀ ∃ ≤ →) passed through to unicode-math rather
+%%         than transliterated into macros, so that the LaTeX source and the
+%%         Lean source contain the SAME GLYPHS. That is the notation standard
+%%         applied to itself (docs/NOTATION.md: one symbol, three columns that
+%%         must never diverge). pdflatex will not compile this file.
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\setmainfont{TeX Gyre Pagella}
+\setmathfont{TeX Gyre Pagella Math}
+\setmonofont{DejaVu Sans Mono}[Scale=0.82]
+
+\usepackage[strings]{underscore}   % identifiers like Reff_ge_sqrt in text mode
+\usepackage[a4paper,margin=2.6cm,bottom=3cm]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{needspace}
+\usepackage{fancyhdr}
+\usepackage{mathesis}              % the programme notation standard — dogfooded
+\usepackage[hidelinks,bookmarks=true]{hyperref}
+
+\hypersetup{
+  pdftitle={Mathesis: Foundations of a Tier Calculus for Scientific Claims},
+  pdfauthor={SocrateAI Stream 0},
+  pdfsubject={Epistemic bookkeeping for machine-checked science},
+  colorlinks=true, linkcolor=mathesisink, urlcolor=mathesisink, citecolor=mathesisink,
+}
+
+\definecolor{mathesisink}{RGB}{20,60,110}
+\definecolor{rulegray}{RGB}{120,120,120}
+\definecolor{codebg}{RGB}{248,248,245}
+\definecolor{leankw}{RGB}{120,20,120}
+\definecolor{leancom}{RGB}{100,110,100}
+
+%% ---------------------------------------------------------------------------
+%% Lean listings
+%% ---------------------------------------------------------------------------
+\lstdefinelanguage{Lean}{
+  morekeywords={theorem,def,lemma,example,axiom,sorry,by,have,show,exact,intro,
+    structure,inductive,namespace,end,import,open,noncomputable,Prop,Type,
+    trivial,unfold,simp,ring,field_simp,decide,norm_num,convert,induction,with,
+    variable,instance,deriving,abbrev,protected,private},
+  sensitive=true,
+  morecomment=[l]{--},
+  morecomment=[n]{/-}{-/},
+  morestring=[b]",
+}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{leankw}\bfseries,
+  commentstyle=\color{leancom}\itshape,
+  backgroundcolor=\color{codebg},
+  frame=leftline, framerule=1.1pt, rulecolor=\color{rulegray},
+  framexleftmargin=6pt, xleftmargin=10pt,
+  breaklines=true, breakatwhitespace=true,
+  showstringspaces=false,
+  columns=fullflexible,
+  aboveskip=1.0em, belowskip=1.0em,
+  literate=
+    {ℚ}{{$\mathbb{Q}$}}1 {ℝ}{{$\mathbb{R}$}}1 {ℕ}{{$\mathbb{N}$}}1 {ℤ}{{$\mathbb{Z}$}}1
+    {α}{{$\alpha$}}1 {β}{{$\beta$}}1 {γ}{{$\gamma$}}1 {δ}{{$\delta$}}1
+    {ι}{{$\iota$}}1 {ω}{{$\omega$}}1 {τ}{{$\tau$}}1 {π}{{$\pi$}}1 {μ}{{$\mu$}}1
+    {→}{{$\rightarrow$}}1 {≤}{{$\leq$}}1 {≥}{{$\geq$}}1 {≠}{{$\neq$}}1
+    {∀}{{$\forall$}}1 {∃}{{$\exists$}}1 {∈}{{$\in$}}1 {¬}{{$\lnot$}}1
+    {₀}{{$_0$}}1 {₁}{{$_1$}}1 {₂}{{$_2$}}1 {₃}{{$_3$}}1 {′}{{$'$}}1
+    {√}{{$\sqrt{}$}}1 {∇}{{$\nabla$}}1 {∧}{{$\land$}}1 {≫}{{$\gg$}}1
+}
+
+%% ---------------------------------------------------------------------------
+%% Section styling
+%% ---------------------------------------------------------------------------
+\titleformat{\section}{\Large\bfseries\color{mathesisink}}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\itshape}{}{0em}{}
+\titlespacing*{\section}{0pt}{2.2ex plus 1ex minus .2ex}{1.2ex plus .2ex}
+
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0.2pt}
+\fancyhead[L]{\footnotesize\color{rulegray}Mathesis — Foundations of a Tier Calculus}
+\fancyhead[R]{\footnotesize\color{rulegray}\thepage}
+
+\setlist[itemize]{leftmargin=1.3em,itemsep=0.25em,topsep=0.35em}
+\setlist[enumerate]{leftmargin=1.5em,itemsep=0.25em,topsep=0.35em}
+
+%% A boxed aside for the "what this does NOT claim" notes, which carry more
+%% weight in this document than the claims do.
+\newcommand{\caveat}[1]{%
+  \par\vspace{0.6em}\noindent
+  \begin{tabular}{@{}p{0.4em}@{\hspace{0.8em}}p{\dimexpr\linewidth-2.2em\relax}@{}}
+  \textcolor{rulegray}{\rule{2pt}{\baselineskip}} & \small #1
+  \end{tabular}\par\vspace{0.6em}}
+
+\newcommand{\tierorder}{\ensuremath{\mathsf{X} < \mathsf{C} < \mathsf{L} < \mathsf{B} < \mathsf{A}}}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{2.5cm}
+{\Huge\bfseries\color{mathesisink} Mathesis\par}
+\vspace{0.8em}
+{\LARGE Foundations of a Tier Calculus\\[0.3em] for Scientific Claims\par}
+\vspace{2.2em}
+{\large\itshape Stream 0 of SocrateAI\par}
+\vspace{0.6em}
+{\large Version 1.0 \quad·\quad 2026-08-14\par}
+\vspace{3.2cm}
+
+\begin{minipage}{0.82\textwidth}
+\small
+\textbf{Tier of this document: C} (governance and exposition).
+
+It states no mathematical result of its own. Every technical claim it makes is
+either a citation to a Tier~A artifact in this repository, or a Tier~C
+observation about another repository, and is labelled as such.
+
+\vspace{1em}
+
+Seven scientific streams share mathematics and a verification technology. Before
+this repository existed they shared no way of saying \emph{how strongly anything
+is known}. Two of them used the letter \textsf{B} for incompatible things: one
+meaning \emph{a program checked it}, the other meaning \emph{a referee checked
+it}. This document sets out the notation, the kernel-verified theorem about it,
+and the five worked cases that tested the apparatus before it was pointed at
+anything that matters.
+\end{minipage}
+
+\vfill
+{\footnotesize\color{rulegray}
+\texttt{github.com/xaviercallens/SocrateAI-Scientific-Mathesis}\par
+\vspace{0.4em}
+All four verification gates green at the time of writing. Not signed off:\\
+no human statement-adequacy audit has yet been performed.\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Context}
+
+SocrateAI runs seven concurrent scientific streams. They share mathematics — the T-dual
+effective radius \texttt{Reff}, the Sym² recurrence lock, dyadic shell decompositions,
+enstrophy functionals — and they share a verification technology, Lean~4. What they did
+\emph{not} share, before this repository existed, was a way of saying \textbf{how strongly
+anything is known}.
+
+\begin{center}\small
+\begin{tabular}{@{}clp{9.6cm}@{}}
+\toprule
+\# & Code & Object of study \\
+\midrule
+0 & \texttt{MX} & \textbf{Mathesis} — the notation, kernel, and ledger the others use \\
+1 & \texttt{MF} & MechanicaFluidorum — 3D Navier–Stokes global regularity, via Hypothesis U \\
+2 & \texttt{AE} & AutoEvolve — K3 selection in the DualScale K3×T² landscape \\
+3 & \texttt{QK} & Quantum Agora — tensor-network, QUBO and Cirq execution of landscape search \\
+4 & \texttt{HG} & Hypergraph — discrete hypergraph cosmology, computation-augmented generation \\
+5 & \texttt{RM} & RajMath — the RAMA Ramanujan engine, mock modular forms, BPS entropy \\
+6 & \texttt{TN} & TNN Univers Model — thermodynamic/topological neural networks \\
+7 & \texttt{VD} & Videoo — scientific communication \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Stream~0 does no science. \textbf{Its object of study is the record.} The first theorem here is
+about ledgers, not about geometry — and that is the point, because the record is the one
+artifact every other stream produces and none of them owns.
+
+\section{Motivation}
+
+Not from first principles. From three failures found by looking.
+
+\subsection{One letter, two meanings}
+
+Stream~1's specification defines:
+
+\begin{quote}\itshape
+\textbf{B — Checkable}: identities validated in exact rational arithmetic; no floats.
+\end{quote}
+
+Stream~5's README defines:
+
+\begin{quote}\itshape
+\textbf{Tier B — Established}: Peer-reviewed literature, pinned to exact values.
+\end{quote}
+
+One means \emph{a program checked it}. The other means \emph{a referee checked it}. These are
+not close. And artifacts already cross between those two repositories: Stream~1's Lean gate
+compiles against Stream~5's working tree. The day a \textbf{claim} crosses with its letter
+attached, a citation silently becomes a computation, and nothing in either repository notices.
+
+This is \texttt{MX-C-0001}. It is the founding observation.
+
+\subsection{A rule with no gate}
+
+Stream~5's README states five CI rules, attributing them to \texttt{dualscale_ci.yml}:
+
+\begin{quote}\itshape
+\textbf{Rule R1}: No \texttt{axiom} declarations allowed in \texttt{.lean} files.
+\end{quote}
+
+That file does not exist. The repository has no \texttt{.github/} directory. A comment-stripped
+scan of its Lean tree on 2026-08-13 found \textbf{34 \texttt{axiom} declarations across 14
+files}, plus two \texttt{sorry}. The commit that introduced both \texttt{sorry}s is titled
+\emph{``zero-sorry Lean 4 verification''}.
+
+The sharpest instance, \texttt{DualScale/Physics/AubinLions.lean}, axiomatises the type, the
+observable, the \textbf{conclusion predicate}, and the \textbf{implication} — then proves a
+theorem by applying the axiom:
+
+\begin{lstlisting}[language=Lean]
+axiom VelocityField : Type                                   -- the type, opaque, no inhabitant
+axiom enstrophy_of : VelocityField → ℝ                       -- the observable, opaque
+axiom aubin_lions_compactness (S : Set VelocityField) : Prop -- the CONCLUSION, opaque
+axiom aubin_lions_apply ... : aubin_lions_compactness S      -- the IMPLICATION, asserted
+
+theorem aubin_lions_enstrophy_compactness ... : aubin_lions_compactness S := by
+  exact aubin_lions_apply h_ens_bound h_ke_bound             -- the proof IS the axiom
+\end{lstlisting}
+
+Since \texttt{aubin_lions_compactness} has no definition, the theorem asserts nothing
+falsifiable; and since \texttt{VelocityField} has no exhibited inhabitant, the hypotheses may be
+vacuous. By that stream's \textbf{own Rule R3} — \emph{``logically vacuous propositions are
+strictly prohibited and will fail the build''} — it fails. Nothing ran.
+
+This is \texttt{MX-C-0003}. It is not an accusation. It is what happens to everyone when no gate
+runs, and it is the most legible argument available for why Stream~0 exists.
+
+\subsection{The same content, handled correctly, still failed}
+
+Stream~1 met the \emph{same mathematics} — Aubin–Lions compactness — the stricter way: as named
+hypothesis parameters, \textbf{never axioms}. It was audited anyway. The verdict, recorded in
+that file's own header:
+
+\begin{quote}\small
+\textbf{TIER C (DRAFT), demoted 2026-08-13 by external audit.} The external audit's B1 verdict:
+\texttt{AubinLionsStatement} and \texttt{ProdiSerrinStatement} as bare \texttt{Prop → Prop}
+arrows \emph{``completely bypass PDE theory. The Lean kernel is merely verifying a logical
+tautology (A → B → C).''} \textbf{Accepted.} This file remains kernel-compiled and gated (so it
+cannot rot) but its claims are \textbf{TIER C} until repaired.
+\end{quote}
+
+A stream demoted its own flagship reduction and kept the file gated so the demotion could not be
+quietly forgotten. That is the standard. Stream~0's job is to make it cheap and general.
+
+\section{Narrative: Newton, Leibniz, and the century of ghosts}
+
+The calculus was founded twice, independently, in the late seventeenth century. Both foundings
+were correct. Both built on infinitesimal ideas reaching back through Cavalieri and Fermat to
+Archimedes' method of exhaustion. The story of what happened next is the argument of this
+document, and it has three acts.
+
+\subsection*{Act I — Notation is not cosmetic}
+
+Newton's \emph{method of fluxions} wrote the derivative of $x$ as $\dot{x}$ and reasoned about
+quantities flowing in time. Leibniz wrote $dy/dx$ and $\int y\,dx$, and reasoned about ratios and
+sums of differentials.
+
+The two systems are mathematically equivalent. \textbf{Leibniz's notation won}, and it won for
+reasons that have nothing to do with mathematical content:
+
+\begin{itemize}
+\item $dy/dx$ \emph{displays the chain rule}. $\frac{dy}{dt} = \frac{dy}{dx}\frac{dx}{dt}$ looks
+like cancellation, so it is hard to get wrong. Fluxion notation gives no such scaffolding.
+\item $\int y\,dx$ \emph{carries the variable of integration}. Substitution becomes bookkeeping
+instead of insight.
+\item Higher derivatives, partial derivatives and multiple integrals extend by pattern in the
+Leibnizian system, and by invention in the Newtonian one.
+\end{itemize}
+
+British mathematics, loyal to Newton after the priority dispute, kept fluxions and fell behind
+Continental analysis for roughly a century. It was not less able. It was worse equipped. The
+Analytical Society at Cambridge in the 1810s campaigned explicitly for \emph{``the principles of
+pure D-ism against the Dot-age of the University''} — a pun that was also a correct diagnosis.
+
+\caveat{\textbf{The lesson Stream~0 takes:} the notation you record results in determines which
+errors are easy to make and which are impossible to miss. \tierorder{} is a notation claim, not a
+philosophy claim. It is chosen so that ``this Tier~A theorem cites a Tier~L result'' becomes
+\emph{visibly} wrong — the way $dy/dx$ makes a botched chain rule visibly wrong.}
+
+\subsection*{Act II — The dispute was an epistemics failure, and the adjudication was rigged}
+
+The priority quarrel was not a disagreement about mathematics. Both men had it. It was a failure
+of \emph{record-keeping}: no shared notation, no dated ledger of who established what and when,
+no agreed standard of evidence for a claim of precedence.
+
+In 1712 the Royal Society convened a committee to settle it and published the
+\emph{Commercium Epistolicum}. The committee was appointed by the Society's president. Its report
+was written, anonymously, by the same president — Newton. He then reviewed it, also anonymously.
+
+An institution issued a verdict on a dispute in which its head was a party, and signed it with
+its own authority. \textbf{The verdict happened to favour the person who was, on the evidence,
+first to the method} — and it was still worthless as adjudication, because nothing independent
+checked it.
+
+This is exactly §2.2, three centuries earlier: an authority certifying itself, with no gate. It
+is why agent self-reports are not evidence, why Gate~3 fails the build when two implementations
+disagree \emph{without adjudicating which is right}, and why this repository is forbidden from
+issuing scientific verdicts about the streams it serves.
+
+\subsection*{Act III — A century of computing on foundations nobody had}
+
+Newton and Leibniz both reasoned with infinitesimals that neither could justify. In 1734 George
+Berkeley published \emph{The Analyst} and named the problem exactly:
+
+\begin{quote}\itshape
+And what are these Fluxions? The Velocities of evanescent Increments? And what are these same
+evanescent Increments? They are neither finite Quantities, nor Quantities infinitely small, nor
+yet nothing. May we not call them the Ghosts of departed Quantities?
+\end{quote}
+
+Berkeley was \textbf{right}. The objection stood, essentially unanswered, until Cauchy and
+Weierstrass built the $\varepsilon$–$\delta$ foundations in the nineteenth century — roughly 150
+years later. And Abraham Robinson's non-standard analysis (1961) eventually vindicated the
+infinitesimals themselves, so the original intuition was sound all along.
+
+Now: \textbf{during those 150 years, everyone kept computing, and it worked.} Euler produced an
+enormous body of correct results on foundations that did not exist. Withholding the calculus
+until it was rigorous would have been a catastrophe for science.
+
+This is the subtlest and most important lesson, and it is the one a naive reading of a tier
+system gets wrong. The tier calculus does \emph{not} say ``do not compute before you are
+rigorous''. Euler at Tier~C was worth more than almost anyone at Tier~A. What it says is:
+
+\begin{center}\large\bfseries Record which one you have.\end{center}
+
+Tier~X is not a rebuke. It is a \emph{permission} — permission to explore with floats, sample,
+guess and follow intuition, on the single condition that the result is labelled and cannot be
+cited as though a machine had checked it. The failure mode is never ``someone conjectured''. It
+is ``someone conjectured, and eighteen months later the conjecture was being cited as a theorem,
+and nobody could point to when it changed status''.
+
+Leibniz himself wanted the fix. His programme had two halves: the \emph{characteristica
+universalis}, a universal formal notation for concepts; and the \emph{calculus ratiocinator}, a
+mechanical procedure for deciding what follows from what. His famous promise for disputes —
+\emph{``Let us calculate, Sir, and see who is right''} — \textbf{never arrived}. What arrived
+instead, in the twentieth century, was the proof assistant: a \emph{calculus ratiocinator} that
+actually runs. Stream~0 is the missing half, the \emph{characteristica}, built for the specific
+job of recording scientific certainty rather than scientific content.
+
+\section{Key concepts}
+
+\subsection{The tier lattice}
+
+Five tiers in one linear order:
+
+\begin{center}\small
+\begin{tabular}{@{}cll@{}}
+\toprule
+& Tier & Admission criterion \\
+\midrule
+\textsf{A} & Kernel      & Lean 4, zero \texttt{sorry}, axiom footprint matches its declared allowlist \\
+\textsf{B} & Checkable   & finite statement decided in exact ℚ/ℤ, deterministic, shipping a \\
+           &             & negative control \textbf{demonstrated to fail} \\
+\textsf{L} & Literature  & peer-reviewed, cited to a \textbf{quoted theorem statement} — not an abstract \\
+\textsf{C} & Conjecture  & proposal, analogy, unverified reduction, design memo \\
+\textsf{X} & Exploratory & floats, sampling, plots, LLM output — \textbf{may never be cited} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The order is about \textbf{how much of the checking a machine did} — not about mathematical
+depth. A Tier~L theorem of Bourgain is deeper than every Tier~A row in this repository.
+
+Tier~\textsf{L} is the tier that did not exist before. Its absence is what forced literature and
+computation to share the letter \textsf{B} (§2.1), and its admission criterion — a \emph{quoted
+theorem statement}, never an abstract or a retrieval summary — came from a real incident where a
+tool-generated paraphrase conflicted with a stream's own description of its work.
+
+\subsection{Evidence kinds cap tiers}
+
+Orthogonal to the order, every claim declares \emph{how} it was established, and that caps what
+it may claim:
+
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Evidence kind & Ceiling \\
+\midrule
+\texttt{lean_axioms}   & \textsf{A} \\
+\texttt{exact_harness} & \textsf{B} \\
+\texttt{citation}      & \textsf{L} \\
+\texttt{argument}      & \textsf{C} \\
+\texttt{numeric}, \texttt{llm_output} & \textsf{X} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\texttt{llm_output} caps at \textsf{X} \textbf{by charter}. No model output promotes a tier —
+including the output of the model that wrote this sentence.
+
+\subsection{Soundness, and the theorem that matters}
+
+A ledger assigns to each identifier a tier and a list of claims it rests on. It is \texttt{Sound}
+when \emph{no claim is filed at a tier above any claim it \textbf{directly} cites}.
+
+Every stream already checks that, informally, by eye. The kernel-verified content of Stream~0 is
+that soundness on direct edges propagates through the \textbf{entire transitive closure}:
+
+\begin{lstlisting}[language=Lean]
+theorem tier_le_of_depends (hL : Sound L) :
+    ∀ {a b : ι}, Depends L a b → (L a).tier ≤ (L b).tier
+
+theorem no_kernel_claim_rests_on_weaker (hL : Sound L)
+    (ha : (L a).tier = Tier.A) (hab : Depends L a b) : (L b).tier = Tier.A
+\end{lstlisting}
+
+\noindent(\texttt{MX-A-0003}, \texttt{MX-A-0004} — Mathlib-free, footprint \texttt{[]}.)
+
+\textbf{Why this elementary result earns a kernel proof.} Transitivity is the property informal
+bookkeeping loses \emph{first}. A chain \textsf{B} → \textsf{B} → \textsf{L} is sound at every
+direct edge and the head still rests on literature. Nobody checks the closure by eye, because
+doing so requires holding the whole graph in mind, and the graph is exactly the thing that got
+too big to hold.
+
+The consequence people trip over: \textbf{a Tier~A claim may not cite a Tier~L theorem.} The
+resolution is not to weaken the tier system — it is to take the literature result as an explicit
+\textbf{hypothesis parameter}. The theorem becomes Tier~A \emph{conditionally}, the condition is
+visible in its type, and the ledger records it.
+
+\subsection{The model/world split}
+
+This is the concept that makes the calculus usable in science rather than only in mathematics.
+
+A scientific claim is almost always \textbf{two claims wearing one name}:
+
+\begin{center}\small
+\begin{tabular}{@{}clc@{}}
+\toprule
+ & Claim & Ceiling \\
+\midrule
+\textbf{M} & the mathematics follows from the model & \textsf{A} — provable \\
+\textbf{W} & the model describes the system         & \textsf{C} at best — empirical \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+``Hardy–Weinberg equilibrium'' names both the algebra and the assertion that a population is at
+it. ``Conservation of energy'' names both a theorem about a Hamiltonian and a claim about an
+apparatus. The Tier~A reputation of \textbf{M} silently underwrites \textbf{W}.
+
+Under the calculus the split is structural rather than rhetorical: \textbf{W} is a separate row
+that \emph{cites} \textbf{M}, and by \texttt{MX-A-0004} it can never be Tier~A — however good the
+data is.
+
+\subsection{Identifiers carry their tier}
+
+\begin{center}
+\texttt{<STREAM>-<TIER>-<NNNN>} \qquad e.g.\ \texttt{MF-A-0007}, \texttt{MX-C-0003}
+\end{center}
+
+The tier letter is \textbf{in the identifier}, so a promotion changes the identifier and every
+stale citation elsewhere becomes \emph{lexically} wrong instead of \emph{silently} wrong. The old
+row is kept and rewritten to point forward; \texttt{supersedes} records the trail.
+
+\emph{Worked instance:} \texttt{MX-C-0004} (Lotka–Volterra bridge, OPEN) → \texttt{MX-A-0011}
+(proved), 2026-08-13.
+
+\section{Notation (the \emph{characteristica})}
+
+One symbol table, three columns that must never diverge: LaTeX macro, meaning, Lean identifier.
+This document is typeset with that package.
+
+\textbf{First-use rule (normative):} a symbol may appear in prose only if its row exists in the
+table.
+
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+LaTeX & Meaning & Lean \\
+\midrule
+\verb|\Reff{\alpha'}{R}| & T-dual effective radius $\max(R,\alpha'/R)$ & \texttt{Mathesis.Scale.Reff} \\
+\verb|\seam|             & fundamental length $\sqrt{\alpha'}$          & — derived \\
+\verb|\HypU|             & Hypothesis U — \textbf{quantifier order normative} & \texttt{Mathesis.Statements.HypothesisU} \\
+\verb|\tier{A}|          & epistemic tier tag                            & \texttt{schemas/ledger.schema.json} \\
+\verb|\lean{Name}|       & the declaration a claim rests on              & — \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Reserved vocabulary.} These words carry gate-backed meanings:
+
+\begin{center}\small
+\begin{tabular}{@{}lp{9.5cm}@{}}
+\toprule
+Word & Reserved for \\
+\midrule
+\textbf{theorem}     & Tier~A only \\
+\textbf{verified}    & a kernel or exact-arithmetic gate accepted it, here, reproducibly \\
+\textbf{established} & Tier~A or Tier~L — never a Tier~B instance check \\
+\textbf{proven}      & Tier~A. Not ``we checked 10\,000 cases'' \\
+\textbf{uniform}     & never without its quantifier order stated explicitly \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The package enforces this structurally: the \texttt{mtheorem} environment takes a
+\textbf{mandatory} Lean declaration name, and \texttt{mclaim} takes a \textbf{mandatory} tier. An
+untiered claim in a programme paper is exactly what it exists to prevent.
+
+\caveat{\textbf{On quantifier order.} Hypothesis U is $\exists C\,\forall\text{cutoff}$, not
+$\forall\text{cutoff}\,\exists C$. Its entire content is uniformity in the cutoff. Swap the
+quantifiers and every symbol still typechecks, every proof still compiles, and the statement has
+become a much weaker one. No kernel catches that. This is why quantifier order is normative in
+prose and why the human audit exists.}
+
+\section{Solver principles}
+
+\subsection{What ``solver'' means here}
+
+\begin{center}\itshape
+A solver is a producer of claims that a dumb exact checker can replay.
+\end{center}
+
+Not a thing that computes an answer — a thing that emits a record another, simpler program can
+independently re-decide. A certificate that cannot be replayed by a checker simpler than the
+producer is not a certificate.
+
+\subsection{The four gates}
+
+\begin{center}\small
+\begin{tabular}{@{}clp{6.4cm}@{}}
+\toprule
+Gate & Checks & Demonstrated to fail \\
+\midrule
+1 & every \texttt{tier_b_*.py} exits 0 & by construction — the controls are its probes \\
+2 & Lean compiles; no \texttt{sorry}; footprints as declared & planted \texttt{sorry}; planted indented axiom \\
+3 & Python and Rust checkers agree on 30 corpus cases & caught a real divergence on its first run \\
+4 & ledger \texttt{Sound}; both ledgers name the same ids & planted orphan id \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{A gate that has only ever been observed passing is indistinguishable from a gate that
+cannot fail.} Every one of the four has been shown to reject a planted defect, and each
+demonstration is recorded.
+
+\subsection{The footprint is the gate}
+
+Never accept ``there is no \texttt{sorry} in the source'' as evidence. A failed proof still
+defines the theorem name in the environment; the source looks clean and only
+\texttt{\#print axioms} reveals the \texttt{sorryAx}. Stream~1 caught two broken proofs this way
+that had been \emph{reported as passing}.
+
+\subsection{Two implementations, no shared dependency}
+
+The ledger checker exists in Python and in Rust, each written against the specification rather
+than against the other. The Rust crate has \textbf{zero} crates.io dependencies, including for
+JSON — a differential gate whose two sides call the same library tests that library once and the
+ledger logic zero times. When they disagree, \textbf{neither is trusted} until a human
+adjudicates.
+
+\subsection{The human audit is not automatable}
+
+\textbf{A theorem is Tier~A the moment the kernel accepts it. It is \emph{citable} only after a
+human has audited the statement.} The kernel confirms the proof establishes the statement;
+nothing mechanical confirms the statement is the one anyone meant.
+
+This is the only step in the pipeline whose output cannot be predicted from the pipeline's own
+signals — which is exactly why it cannot be removed to go faster.
+
+\subsection{No dependency Stream 0 cannot rebuild in a minute}
+
+The Lean core is Mathlib-free and cold-builds in about two seconds with no \texttt{import} at
+all. The Rust crate has no dependencies. The Python package is standard-library only. Stream~0's
+gate is what every other stream will eventually call; it must never be the reason another stream
+is blocked.
+
+\section{Methodology: the loop}
+
+\begin{center}\ttfamily\small
+0 SPLIT $\rightarrow$ 1 REFUTE $\rightarrow$ 2 CHECK $\rightarrow$ 3 PROVE $\rightarrow$
+4 \textbf{HUMAN} $\rightarrow$ 5 FILE
+\end{center}
+
+\textbf{0 — Split.} Write \textbf{M} and \textbf{W} as separate sentences. Only \textbf{M} enters
+the Lean file.
+
+\textbf{1 — Refute before proving.} Perturb a coefficient, zero a variable, try the degenerate
+case, in exact arithmetic at small parameters. A false conjecture absorbs unbounded proof effort
+and returns nothing; a five-second sweep kills most. Stream~1 found a convolution formula,
+sourced from a web search, that was \textbf{identically zero} — caught at $M = 1,2,3$, and
+invisible to any amount of proof effort because the statement was perfectly provable and
+perfectly useless.
+
+\textbf{2 — Check.} Exhaustive over a small exact grid beats random over a large one: a failure
+names a reproducible tuple rather than a seed. Ship a control targeting the \textbf{plausible
+near-miss}.
+
+\textbf{3 — Prove.} Declare the gate contract in the header. Work over ℚ when the harness uses
+\texttt{Fraction}, so the theorem and the check are about \emph{one} structure rather than two
+that agree numerically.
+
+\textbf{4 — Audit.} Human. Three questions: does the formal statement say what the gloss claims;
+are the hypotheses non-vacuous; \textbf{are the quantifiers where the science needs them}.
+
+\textbf{5 — File.} Artifact, both ledger rows, and gate output, in one commit.
+
+\caveat{\textbf{Health is the kill ratio, not the promotion count.} A good run refutes most of
+what it proposes. A loop that promotes everything is broken, and a loop that has never produced a
+rejection has not been tested.}
+
+\section{Domains}
+
+The apparatus is domain-agnostic because it constrains \emph{evidence}, not \emph{content}. What
+varies by domain is where the model/world seam falls and which tier is reachable at all.
+
+\begin{center}\small
+\begin{tabular}{@{}lccp{5.4cm}@{}}
+\toprule
+Domain & \textbf{M} ceiling & \textbf{W} ceiling & Characteristic trap \\
+\midrule
+Pure mathematics       & \textsf{A} & — & vacuous statements; junk values ($x/0 = 0$) \\
+Theoretical physics    & \textsf{A}$^*$ & \textsf{L} & fixing a quantified parameter as a global constant \\
+Computational physics  & \textsf{B} & \textsf{C} & floats certifying a rounding mode, not a law \\
+Population biology     & \textsf{A} & \textsf{C} & the model's assumptions hold of nothing real \\
+Genomics               & \textsf{B} & \textsf{C} & statistical significance read as mechanism \\
+Machine learning       & \textsf{X} & \textsf{X} & a validated model treated as evidence about the world \\
+Quantum hardware       & \textsf{X} & \textsf{X} & sampled, noisy, non-deterministic by construction \\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent{\footnotesize $^*$ conditional on the force or action law, entered as a hypothesis.}
+
+Two rows deserve comment.
+
+\textbf{Machine learning and quantum hardware cap at \textsf{X}, and this is not a slight.} It is
+what lets them be cited \emph{for what they actually establish}. A quantum annealer's output can
+\textbf{steer} a landscape search; it can never \textbf{support} a claim. A trained model
+reproducing a dynamic is Tier~X evidence about the model, which is exactly what it is.
+
+\textbf{Computational physics is where the float ban does its work.} ``Agrees to $10^{-15}$''
+certifies a rounding mode. The discipline is to reformulate until the statement is exact — and
+§9's Kepler case shows that reformulating usually \emph{improves} the statement rather than
+restricting it.
+
+\section{The five use cases}
+
+Five claims, three sciences, increasing complexity, all Tier~A over ℚ or ℝ with an
+exact-arithmetic harness checking the same statements. They are deliberately elementary: the
+point is that the \emph{apparatus} survives contact with mathematics nobody will argue about, so
+that when it is pointed at something contested, a failure is a failure of the claim and not of
+the plumbing.
+
+\begin{center}\small
+\begin{tabular}{@{}clllp{4.3cm}@{}}
+\toprule
+\# & Domain & Claim & Artifact & Exercises \\
+\midrule
+1 & Mathematics & $1+3+\dots+(2n-1) = n^2$ & \texttt{OddSums} & the pipeline itself \\
+2 & Physics & elastic collision conserves $p$ \emph{and} $E$ & \texttt{ElasticCollision} & exact vs.\ ``agrees to $10^{-15}$'' \\
+3 & Biology & Hardy–Weinberg allele invariance & \texttt{HardyWeinberg} & \textbf{model vs.\ world} \\
+4 & Physics & Kepler III from inverse-square & \texttt{Kepler} & the float ban improving a statement \\
+5 & Biology & Lotka–Volterra conservation & \texttt{LotkaVolterra\{,Flow\}} & \textbf{deferral, then promotion} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{UC1 — Sum of odd numbers}
+
+Mathlib-free, 0.8\,s. Chosen because a failure can only be the pipeline.
+
+\emph{Taught:} the declared footprint went stale within minutes. The header said
+\texttt{allow=} and the proof needed \texttt{omega}, which carries
+\texttt{[propext, Quot.sound]}. A proof rewrite was attempted to reach \texttt{[]}, failed, and
+the \textbf{declaration} was amended — the direction the rule requires.
+
+\subsection{UC2 — Elastic collision}
+
+Both momentum and kinetic energy conserved exactly, over 1296 enumerated mass/velocity
+combinations, for $m_1 + m_2 \neq 0$.
+
+\emph{The control that matters:} a perfectly \textbf{inelastic} collision conserves momentum but
+\textbf{not} energy. A momentum-only implementation passes it. That control is what makes the
+energy check mean something.
+
+\emph{Witness:} at $m_2 = -m_1$ the formulae divide by zero, Lean's junk-value convention returns
+$0$, and momentum is \textbf{not} conserved — which is why the side condition is in both
+statements.
+
+\subsection{UC3 — Hardy–Weinberg: the model/world split}
+
+Allele frequency is invariant under random mating; equilibrium is reached in \textbf{one}
+generation from arbitrary starting genotype frequencies.
+
+The algebra is Tier~A. \emph{``This population is at Hardy–Weinberg equilibrium''} is Tier~C at
+best — the model assumes infinite population, random mating, no selection, mutation, migration or
+drift, and not one holds of any real population. In most write-ups one phrase covers both, and
+the Tier~A reputation of the first underwrites the second.
+
+\emph{The control that matters:} selection against the recessive homozygote \textbf{moves} the
+allele frequency. Hardy–Weinberg exists to make selection visible; a check that could not detect
+a violation would make the null model unfalsifiable.
+
+\subsection{UC4 — Kepler III: the float ban earning its keep}
+
+$T^2 \propto a^3$ carries $\pi$, which is irrational, so nothing is exactly checkable and the
+standard response is floats. But \textbf{$\pi$ was never carrying any physics.} With the reduced
+period $\tau = T/2\pi = 1/\omega$:
+\[
+  \frac{r^3}{\tau^2} \;=\; \omega^2 r^3 \;=\; GM
+\]
+Exactly rational whenever $r$ and $GM$ are; the constant becomes $GM$ rather than $4\pi^2/GM$;
+$\pi$ has left the statement. Nothing approximated, nothing lost — $T^2 \propto a^3$ follows
+because $T$ and $\tau$ differ by the same factor for every orbit.
+
+\caveat{\textbf{The constraint did not make the physics harder to state. It located a constant
+that was decoration and removed it.}}
+
+\emph{The control that matters:} under an inverse-\textbf{cube} force, $\omega^2 r^3$ stops being
+constant — so the check is about gravity, not arithmetic.
+
+\subsection{UC5 — Lotka–Volterra: deferral, then promotion}
+
+\emph{First half.} The algebraic core — substituting the vector field into $dV/dt$ and clearing
+the logarithmic derivatives leaves an expression identically zero. Four terms cancelling in
+pairs. Verified over 15\,625 exact parameter combinations.
+
+The analytic step — that this expression \textbf{is} $dV/dt$ — was filed \textbf{OPEN at Tier~C},
+refusing both shortcuts: \texttt{axiom} (forbidden), and the conditional restatement
+\emph{``given $dV/dt = D$, and $D = 0$, therefore $dV/dt = 0$''} — which compiles, carries no
+axioms, looks like Tier~A, and is a tautology of exactly the shape Stream~1 was demoted for.
+
+\emph{Second half.} \textbf{The deferral was wrong, and finding out why was the more useful
+result.} The calculus modules were absent from one Mathlib checkout and present in the other.
+Pointed at the second, \texttt{conserved_along_flow} compiles on the first attempt, in nine
+lines. $V$ is now proved genuinely constant along any trajectory: derivative exactly $0$, not
+``$0$ given that it is $0$''.
+
+\texttt{MX-C-0004} → \texttt{MX-A-0011}. New identifier, \texttt{supersedes} recorded, old row
+retained pointing forward. \textbf{This is the first tier promotion in the ledger} — until it
+happened, the promotion rule was schema with no instance.
+
+\caveat{\emph{The refusals were right regardless.} Had the calculus genuinely been missing,
+\texttt{axiom} and the tautological conditional would both still have been wrong answers.}
+
+\section{Benefit, measured (not asserted)}
+
+The honest measure of an apparatus is not how many claims it certifies but \textbf{whether it has
+recently caught something its author believed}. By that measure:
+
+\subsection{Defects found in the gates, by the campaign}
+
+\begin{enumerate}
+\item \textbf{Gate 2 was silently skipping theorems.} Lean wraps \texttt{\#print axioms} output
+past its line width; the parser was line-anchored and dropped every wrapped declaration.
+\texttt{ElasticCollision.lean} reported \emph{``1 footprint''} for a file with two theorems,
+\textbf{and passed}. Because wrapping is triggered by long names, the bug hid precisely the
+deeply-namespaced declarations in new modules. It is a false \emph{all-clear}, in the gate that
+is the sole evidence for every Tier~A row. Fixed; the gate now cross-checks
+\texttt{\#print axioms} directives against footprints parsed, and runs parser self-tests on every
+invocation.
+
+\item \textbf{Two theorems had never been footprint-checked} — \texttt{Tier.X_le} and
+\texttt{witnessChain_reach} had no \texttt{\#print axioms} line since they were written.
+
+\item \textbf{The axiom scanner was evadable by one space.} It matched \texttt{\^{}axiom} at
+column 0, so an indented, \texttt{private}, or attributed axiom all passed. Its ``ignores prose''
+control passed \emph{for the same reason it was evadable}. One property was bought with the other
+and the suite could not tell.
+
+\item \textbf{Three non-vacuity witnesses were wrong on first attempt} — parameters chosen by
+inspection landed on degenerate cases, and one ``counterexample'' was simply false ($\tfrac12 +
+\tfrac12$ does sum to 1). All caught by the kernel with $\vdash$ \texttt{False}.
+
+\item \textbf{A deferral rested on an unchecked premise.} A missing Lean module reports as an
+unknown identifier — indistinguishable from a nonexistent lemma or a false statement. An unbuilt
+module masqueraded as a mathematical obstruction.
+\end{enumerate}
+
+Items 1, 2 and 3 would have stayed invisible without the campaign. That is the argument for
+running elementary cases through new apparatus \textbf{before} pointing it at anything that
+matters.
+
+\subsection{Findings about the streams}
+
+The Tier~B collision; the CI file that does not exist while 34 axioms and two \texttt{sorry} sit
+in the tree it claims to gate; and two Mathlib subsets that differ, neither complete, so that
+which one is resolved determines what is \emph{provable}.
+
+A fourth, verified directly on 2026-08-13, is the same shape in two more streams:
+\texttt{TNN/specs/TNN_Invariants.lean:46} contains \texttt{sorry} in
+\texttt{energy_conservation}, while that stream's dashboard hardcodes
+\texttt{"lean4_status": "PROVEN (Zero-Sorry)"} \textbf{fifteen times as a string literal},
+computed from nothing. And \texttt{RajMathRecovery/NAMAGIRI.lean} proves Hypothesis U and
+singularity prevention \texttt{by trivial} over \texttt{Prop := True}, with \texttt{Real} defined
+as \texttt{Float}.
+
+\caveat{\textbf{The recurring pattern across four of seven streams is not bad mathematics. It is
+a status string that no check produces.} A README asserting a CI file that does not exist; a
+dashboard field that is a literal; a docstring describing what a \texttt{trivial} proof would
+establish if its predicate were not \texttt{True}. In every case the \emph{code} is honest and
+the \emph{label} is not, and there is no gate between them. That gap is the entire product.}
+
+\subsection{One finding came from \emph{not} trusting a scanner}
+
+A survey subagent reported ``839 \texttt{sorry} and 264 \texttt{axiom}'' in Stream~5's tree.
+Re-measured excluding the vendored Mathlib: \textbf{2 and 34}. The agent had counted Mathlib
+itself, where \texttt{sorry} appears in test files and where \texttt{axiom} is how
+\texttt{propext} and \texttt{Classical.choice} are \emph{defined}. The figure was specific,
+confident, and made the case being argued stronger — three reasons to check it harder, all of
+which push the other way.
+
+\subsection{What is deliberately not claimed}
+
+That any of this is true of the world. Every Tier~A row is a statement about a model whose
+assumptions are written into the theorem's type. \textbf{A green board says the bookkeeping
+holds. It licenses nothing about collisions, populations, planets, fluids, or the universe.}
+
+\section{Future work: the hard problems}
+
+This section is \textbf{Tier~C throughout}. It describes what the apparatus would contribute to
+five hard problems. It does not claim progress on any of them, and Stream~0 is forbidden from
+issuing scientific verdicts about the streams it serves.
+
+\caveat{Hard problems fail at the \textbf{seams} — where an unproven analytic step is quietly
+absorbed, where a quantifier is fixed that should have stayed free, where a Tier~C model
+assumption inherits the authority of the Tier~A algebra built on top of it. Mathesis does not
+attack the problem. It makes the seams \textbf{visible, typed, and mechanically checked}, so that
+effort is spent where the difficulty actually is.}
+
+\subsection{Navier–Stokes, and how to avoid the singularity}
+
+Global regularity for 3D Navier–Stokes: do smooth initial data remain smooth for all time, or can
+enstrophy blow up in finite time? Stream~1 attacks it via \textbf{Hypothesis U} — uniform-in-$\alpha'$
+enstrophy control of the frequency-truncated system:
+\[
+  \sup_{\alpha' > 0}\; \sup_{0 \le t \le T}\; \bigl\| \nabla u^{(\alpha')}(t) \bigr\|_{L^2(\mathbb{T}^3)} \;<\; \infty
+\]
+
+\textbf{The quantifier order is the content.} $\exists C\,\forall\alpha'$ says one constant works
+for every truncation — which is what lets $\alpha' \to 0$ recover the true equation.
+$\forall\alpha'\,\exists C$ says each truncation has its own constant, which is nearly free and
+implies nothing. \textbf{Both typecheck. Both compile. No kernel distinguishes them.}
+
+Stream~5's \texttt{TDuality.lean} shows the failure mode live: it declares
+\texttt{noncomputable def alpha_prime : ℝ := 1}. With $\alpha'$ pinned, every statement about the
+$\alpha' \to 0$ limit is unstateable and nothing reports it.
+
+\subsubsection{Singularity avoidance — the mechanism, already Tier A}
+
+The dual-scale programme's geometric idea is that the effective radius seen by the truncated
+system is $\Reff{\alpha'}{R} = \max(R, \alpha'/R)$, which \textbf{cannot go below $\seam$}. Below
+the seam the scale \emph{bounces}. There is no path to zero scale. Stream~0 has proved this,
+unconditionally and axiom-free (\texttt{MX-A-0005}):
+
+\begin{center}\small
+\begin{tabular}{@{}lp{9.2cm}@{}}
+\toprule
+Theorem & Content \\
+\midrule
+\texttt{Reff_pos}                 & the effective radius is never zero \\
+\texttt{Reff_ge_sqrt}             & $\sqrt{\alpha'} \le \Reff{\alpha'}{R}$ — \textbf{a universal floor} \\
+\texttt{Reff_eq_sqrt_iff}         & the floor is attained at \textbf{exactly one} point, the self-dual radius \\
+\texttt{Reff_bounce}              & below the seam, $\Reff{\alpha'}{R} = \alpha'/R$ — the reflection \\
+\texttt{genesis_no_singularity}   & $0 < \texttt{tDualRadius}\ \alpha'\ R$ — no collapse \\
+\texttt{one_div_sq_le_of_sqrt_le} & $\sqrt{\alpha'} \le x \Rightarrow 1/x^2 \le 1/\alpha'$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+That last one is the bridge to the fluid estimates: a minimum length becomes a \textbf{maximum}
+on the $1/x^2$ factors that drive an enstrophy cascade.
+
+\subsubsection{The failure mode, in the wild}
+
+\texttt{RajMathRecovery/NAMAGIRI.lean} — a standalone file at that repository's root — contains:
+
+\begin{lstlisting}[language=Lean]
+def Real := Float
+def uniformBoundedness (D : EnstrophyFunctional) : Prop := True
+/-- Ramanujan's sum of tails algebraically bounds the ultra-high-frequency
+    modes, proving Hypothesis U. -/
+theorem hypothesis_U_bound (D : EnstrophyFunctional) : uniformBoundedness D := by
+  trivial
+
+def topologicalFracture (state : Complex) : Prop := True
+theorem prevents_singularity (res : Nat) : topologicalFracture (fractionLimit res) := by
+  trivial
+\end{lstlisting}
+
+The predicates are \texttt{True}. The proofs are \texttt{trivial}. \texttt{Real} is
+\texttt{Float}. The docstrings claim Hypothesis U and singularity prevention — the two central
+objects of the Navier–Stokes programme.
+
+\caveat{\textbf{In fairness, and precisely:} the file is imported by nothing and appears in no
+lakefile, so it contaminates no build and no gated claim rests on it. It is a skeleton, and
+writing skeletons is legitimate. What is missing is the \emph{label}. Under the calculus this is
+Tier~X — \texttt{Prop := True} is the definition of a vacuous statement, and Stream~5's own Rule
+R3 forbids exactly it. The gap between a sketch and a claim is one docstring wide, and nothing
+currently sits in it.}
+
+\subsection{Quantum wave, T-duality, K3×T² and F-theory}
+
+Select the K3×T² geometry reproducing observed cosmological parameters — treating the landscape
+as a search space rather than an anthropic accident.
+
+This is the domain most exposed to \textbf{tier inflation}, because candidates are produced
+\emph{mechanically and in volume}. A search result is Tier~X until something checks it, and the
+gap between ``the search proposed it'' and ``we verified it'' is where a landscape programme
+loses its footing.
+
+\textbf{Quantum hardware output is Tier~X, mechanically.} A D-Wave anneal or a Cirq run can
+\textbf{steer} a search; it can never \textbf{support} a claim. This is not a limitation imposed
+on Stream~3 — it is what lets its results be cited for what they establish.
+
+\textbf{The unresolved question, stated rather than assumed.} Is a search-produced candidate that
+passes an exact-arithmetic filter \emph{Tier~B}, or \emph{Tier~X with a Tier~B filter-result
+attached}? These are different claims. Stream~0 has not decided it; it is reserved to the owner.
+
+\subsection{Black hole entropy}
+
+Reproduce the Bekenstein–Hawking entropy by microstate counting. Stream~5's route is BPS state
+counting through Ramanujan-type asymptotics.
+
+The seam falls between the \textbf{counting function} and the \textbf{entropy}. The asymptotic
+growth of a partition-like generating function is a hard but ordinary analytic fact. That this
+growth \emph{is} the entropy of a black hole is a physical identification resting on a chain of
+dualities. These are \textbf{M} and \textbf{W}, routinely written as one sentence.
+
+The entropy function itself is concrete and reasonable —
+\texttt{macroscopicEntropy (c_eff n) := 2 * π * √(c_eff * n / 6)}, the Cardy formula. It is
+the \emph{chain around it} that is axiomatised: \texttt{bps_macroscopic_entropy},
+\texttt{rademacher_first_order}, \texttt{saddle_point_asymptotic},
+\texttt{bps_implies_spectral_gap}, \texttt{hagedorn_divergence}, \texttt{modular_s_transform},
+\texttt{rogers_ramanujan_identity}.
+
+That last is a \textbf{theorem} — proved, famous, and available in the literature. As an axiom it
+contributes nothing but risk: Tier~L material entered at a level that permanently pollutes every
+downstream footprint.
+
+\textbf{The fix is mechanical and loses nothing.} Convert each \texttt{axiom} to a hypothesis
+parameter. The theorems survive, become explicitly conditional, and the dependence becomes
+visible in the type instead of invisible in the footprint. Results with genuine literature
+backing then move to Tier~\textsf{L} — the tier that did not exist before, and precisely the one
+this material needs.
+
+\subsection{Dark matter and dark energy}
+
+The most evidence-rich and model-poor domain in physics: a large, consistent body of observation
+and a wide space of models fitting it.
+
+Nowhere else is the model/world gap wider or more consequential. The \textbf{observations} are
+Tier~L — peer-reviewed, pinned to published values with quoted uncertainties. The \textbf{fits}
+are Tier~B at best, and only if the fitting is exact and deterministic, which it usually is not.
+The \textbf{interpretations} are Tier~C, and they are what gets reported.
+
+The characteristic failure is not fabrication. It is a Tier~C model selection acquiring, over a
+few years of citation, the felt authority of the Tier~L observations it was fitted to.
+
+Model comparison becomes a ledger query: competing models citing the same Tier~L observational
+rows, each at its own tier, make \emph{``what does this rest on that the alternative does
+not?''} answerable by traversing \texttt{supports} rather than by literature review. And a
+simulation is Tier~X — an N-body run is sampled and floating-point. It may steer; it may not
+support.
+
+\caveat{\textbf{Honest limit.} Stream~4's tree has \textbf{not} been audited. What is known is
+only its shape: it carries \texttt{dark_matter/}, \texttt{proofs/}, \texttt{lean_oracle/}, an
+MFDM continuum-limit paper and NANOGrav SGWB specifications — and it is the only one of the seven
+that is \textbf{not a git repository}, so it has no commit history to audit against. Its tier
+vocabulary, Lean inventory and axiom counts are \textbf{unmeasured}. The absence of a finding is
+not a clean bill.}
+
+\subsection{DNA and genetics}
+
+From sequence to mechanism: which variants cause which phenotypes, and by what pathway. No
+SocrateAI stream works on this \emph{yet}, though two have written it into their forward plans:
+Stream~6's frontier names \emph{``scRNA-seq topological networks \dots multi-gene epigenetic
+regulation \dots in oncology''}, and Stream~5 has a design note proposing to \emph{``treat DNA
+folding or the propagation of genetic mutations as a cellular automaton''}.
+
+UC3 is already the entry point. The Hardy–Weinberg algebra is Tier~A; \emph{``this population is
+at Hardy–Weinberg equilibrium''} is Tier~C. Every genome-wide association study rests on that
+distinction, and the characteristic failure is a \textbf{statistical association read as a
+mechanism} — a Tier~B correlation cited as a Tier~A causal claim.
+
+\texttt{llm_output} caps at \textsf{X}, and this domain needs it most: sequence models are now
+routinely used to predict variant effects. A model's confidence is Tier~X evidence \emph{about
+the model}. It is not evidence about a genome, however well the model validates.
+
+Much of classical genetics is Tier~B material currently reported in floats — segregation ratios,
+linkage distances, pedigree probabilities and Hardy–Weinberg expectations are all exact rational
+arithmetic.
+
+\section{Conclusion}
+
+Leibniz's programme had two halves. The \emph{calculus ratiocinator} — a mechanical procedure for
+deciding what follows from what — arrived three centuries late, as the proof assistant, and it
+works. The \emph{characteristica universalis} — the notation those procedures operate on — did
+not arrive, and its absence is what this repository addresses.
+
+Not a universal notation for \emph{concepts}. Leibniz's ambition there was too large and probably
+incoherent. A universal notation for \textbf{certainty}: five tiers, one linear order, an
+orthogonal evidence kind that caps what each row may claim, and one kernel-verified theorem
+saying that soundness on direct citations propagates through the entire transitive closure.
+
+The theorem is elementary. That is deliberate. It earns a kernel proof not because it is hard but
+because \textbf{transitivity is the property informal bookkeeping loses first} — every stream
+checks direct citations by eye, and none checks the closure, because the closure is exactly the
+thing that grew too big to hold in mind.
+
+Three things are worth carrying away.
+
+\textbf{First, the notation is the mechanism.} Leibniz's $dy/dx$ beat Newton's $\dot{x}$ not by
+being more correct but by making a botched chain rule \emph{visibly} wrong, and a century of
+British mathematics paid for the difference. \tierorder{} is chosen on the same principle: to
+make ``this Tier~A theorem cites a Tier~L result'' a lexical error rather than a judgement call.
+
+\textbf{Second, low tiers are permissions, not rebukes.} Newton and Leibniz computed for 150 years
+on foundations Berkeley correctly demolished, and they were right to. Euler at Tier~C was worth
+more than almost anyone at Tier~A. The tier calculus does not ask anyone to wait for rigour. It
+asks them to \textbf{record which one they have} — because the failure was never that someone
+conjectured, but that eighteen months later the conjecture was being cited as a theorem and
+nobody could say when it changed status.
+
+\textbf{Third, the apparatus must be tested on things nobody disputes.} Five elementary use cases
+across mathematics, physics and biology found five defects — three in the gates themselves,
+including a false all-clear in the gate that is the sole evidence for every Tier~A row, and one
+deferral resting on a premise nobody had checked. Three of those would have stayed invisible.
+Pointing an unvalidated instrument at a Millennium Problem tells you nothing about the problem.
+
+What Stream~0 refuses is as load-bearing as what it provides. It issues no scientific verdicts.
+It does not automate the human statement-adequacy audit — the one step whose result cannot be
+predicted from the pipeline's own signals, which is precisely why it cannot be removed to go
+faster. It does not adjudicate when two independent implementations disagree; it fails the build
+and escalates to a person. And it does not claim that a green board licenses anything beyond the
+internal consistency of a record.
+
+The 1712 \emph{Commercium Epistolicum} reached the right conclusion about priority and was
+worthless as adjudication, because the president of the deciding body wrote the verdict on his
+own dispute and signed it with the institution's authority. \textbf{Being right is not the same
+as being checkable.} A programme that cannot tell the difference will eventually be unable to
+tell whether it is right.
+
+\vspace{1em}
+\begin{center}\itshape
+Calculemus was never a promise that the calculation would succeed —\\
+only that when it did not, everyone would be able to see exactly where.
+\end{center}
+
+\appendix
+\section{Artifacts}
+
+\begin{center}\small
+\begin{tabular}{@{}lp{8.4cm}@{}}
+\toprule
+Kernel core        & \texttt{lean/Mathesis/TierCalculus.lean} — Mathlib-free, footprint \texttt{[]} \\
+Consolidated Reff  & \texttt{lean/Mathesis/Scale/Reff.lean} \\
+Use cases          & \texttt{lean/Mathesis/Applications/} — 5 cases, 6 modules \\
+Reference checker  & \texttt{python/mathesis/} — standard library only, no floats \\
+Independent checker& \texttt{rust/mathesis-verify/} — zero dependencies, including JSON \\
+Gates              & \texttt{scripts/verify.sh} — four gates, each demonstrated to fail \\
+Ledger             & \texttt{LEDGER.md} + \texttt{ledger.jsonl} — 23 rows, \texttt{Sound} \\
+Lessons            & \texttt{LL.md} — 15 entries, each with its incident \\
+Notation           & \texttt{latex/mathesis.sty}, \texttt{docs/NOTATION.md} \\
+Owner decisions    & \texttt{docs/OWNER_BRIEF.md} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.6em}
+\noindent\textbf{Status.} All four gates green. \textbf{Not signed off}: no human
+statement-adequacy audit has been performed, so Stream~0's own ledger currently carries the very
+gap it exists to close in others, and says so.
+
+\end{document}

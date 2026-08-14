@@ -328,6 +328,48 @@ self-evident to the agent that produced it.
 
 ---
 
+## LL-16 — The paper asserted something false about its own central theorem *(2026-08-14, Stream 0)*
+
+**What happened.** Seven files, including the foundations paper and its typeset PDF, contained
+this sentence in some form:
+
+> A chain `B → B → L` is sound at every direct edge and the head still rests on literature.
+
+It is **false**. The tier order is `X(0) < C(1) < L(2) < B(3) < A(4)`, and `Sound` requires
+`tier(a) ≤ tier(b)` for every `b` a cites. So `B → L` is `3 ≤ 2`, which is **directly unsound**.
+The chain does not have all-sound direct edges; its last edge is the violation.
+
+Checked by running the checker on that exact chain:
+
+```
+  direct edge MX-B-0001(B) -> MX-B-0002(B): sound=True
+  direct edge MX-B-0002(B) -> MX-L-0003(L): sound=False
+```
+
+**Why it survived.** It was written once, early, as motivation — and then *copied* into
+`README.md`, `VISION.md`, `TIER_CALCULUS.md`, `FOUNDATIONS.md`, a source comment in
+`ledger.py`, a skill file, and the LaTeX paper. Nobody re-derived it at any of those seven
+sites; it read as established because it had already been said. The gates could not catch it:
+it is prose *about* a theorem, and prose is not gated.
+
+**What the correct motivation is, and it is better.** The theorem's value is not that a bad chain
+passes the direct check. It is that a checker validating each row against *its own* citations
+flags the **middle** claim and says nothing about the **head** — and the head is the row people
+actually cite. The transitive check answers *what else falls?*, which is the retraction question.
+The checker already reports both, one finding for the direct edge and one for the contaminated
+head.
+
+**Rule.** A motivating example is a claim. Derive it, or run it, at least once — and preferably
+in the harness, so it cannot rot. The `B → B → L` chain is now exercised by
+`tests/tier_b_tier_calculus.py`, which is why the *implementation* was always right while the
+*prose* was wrong for a week.
+
+**Rule.** When correcting a claim, `grep` the whole repository for it. This one had seven sites
+and a PDF. Fixing the paper alone would have left six copies of the error and a rebuilt binary
+still carrying it.
+
+---
+
 ## LL-5 **[inherited, Stream 1]** — "No `sorry` in the source" is not the gate
 
 **What happened.** Stream 1 caught **two** broken Lean proofs that a concurrent process's own

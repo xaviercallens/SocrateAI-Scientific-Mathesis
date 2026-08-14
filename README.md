@@ -67,8 +67,10 @@ theorem no_kernel_claim_rests_on_weaker (hL : Sound L)
 
 Elementary mathematics — and that is the point. It earns a kernel proof not because it is hard
 but because transitivity is *the property informal bookkeeping loses first*. Every stream
-already checks the direct condition by eye. None checks the closure. A chain `B → B → L` is
-sound at every direct edge and still rests on literature.
+already checks the direct condition by eye. None checks the closure. In a chain `B → B → L`
+the unsound edge is at the far end — and a checker validating each row against its own citations
+flags the middle row while saying nothing about the **head**, which is what gets cited. The
+transitive check is what reports the head is contaminated too.
 
 **Three implementations that must agree.** The theorem in Lean 4; a Python reference checker; an
 independent Rust checker sharing no dependency with it — not even a JSON library. Gate 3 runs

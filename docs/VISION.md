@@ -46,7 +46,8 @@ it directly cites. The kernel-verified result is that soundness then holds acros
 This is elementary mathematics, and that is the point. It is worth a kernel proof not because
 it is hard but because it is *the property informal bookkeeping loses first*. Every stream
 already checks the direct condition by eye when adding a row. None checks the closure — and
-`B → B → L` is sound at every direct edge while still resting on literature.
+in `B → B → L` the unsound edge sits at the far end, and flagging the middle
+claim tells nobody that the head — the row that actually gets cited — is contaminated.
 
 **Three implementations that must agree.** The theorem in Lean; a Python reference checker;
 an independent Rust checker with no shared dependency. Gate 3 runs the last two over an

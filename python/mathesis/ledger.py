@@ -273,7 +273,8 @@ def _check_sound(ledger: Ledger) -> Iterable[Finding]:
     """The mechanised content of `tier_le_of_depends`.
 
     Direct edges alone are not enough: a chain A -> A -> L is sound at no direct
-    edge, but a chain B -> B -> L is sound at every direct edge and still means
+    edge, but in a chain B -> B -> L the unsound edge is at the far end, and
+    flagging the middle claim leaves the head contaminated and unreported, which means
     the head rests on literature. The Lean theorem says the transitive check is
     implied by the direct one *when the ledger is sound*; this function is what
     establishes that hypothesis, so it checks the closure directly.

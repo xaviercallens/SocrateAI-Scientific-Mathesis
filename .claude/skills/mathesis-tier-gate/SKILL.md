@@ -70,7 +70,8 @@ result is then Tier A *conditionally*, and the ledger records what it is conditi
 introduce it as an `axiom`: that pollutes every downstream footprint and hides the dependency
 from the gate.
 
-Check the closure, not just the direct edges. `B → B → L` is sound at every direct edge and
+Check the closure, not just the direct edges. In `B → B → L` the unsound edge is at the far
+end, and flagging the middle claim leaves the head — the row people cite — contaminated and
 still means the head rests on literature.
 
 ## Before writing any claim down

@@ -419,10 +419,15 @@ theorem no_kernel_claim_rests_on_weaker (hL : Sound L)
 \noindent(\texttt{MX-A-0003}, \texttt{MX-A-0004} — Mathlib-free, footprint \texttt{[]}.)
 
 \textbf{Why this elementary result earns a kernel proof.} Transitivity is the property informal
-bookkeeping loses \emph{first}. A chain \textsf{B} → \textsf{B} → \textsf{L} is sound at every
-direct edge and the head still rests on literature. Nobody checks the closure by eye, because
-doing so requires holding the whole graph in mind, and the graph is exactly the thing that got
-too big to hold.
+bookkeeping loses \emph{first}. A chain \textsf{B} → \textsf{B} → \textsf{L} has its unsound
+edge at the \emph{far} end — the middle claim cites literature it may not cite. A checker
+validating each row against its own citations flags that middle row and says nothing about the
+\textbf{head}, which is the row someone will actually cite. The transitive check is what reports
+the head is contaminated too.
+
+That is the retraction question — \emph{what else falls?} — and nobody answers it by eye, because
+doing so requires holding the whole graph in mind, and the graph is exactly the thing that got too
+big to hold.
 
 The consequence people trip over: \textbf{a Tier~A claim may not cite a Tier~L theorem.} The
 resolution is not to weaken the tier system — it is to take the literature result as an explicit

@@ -110,7 +110,8 @@ support set of a Tier A row is Tier A.
 Why kernel-verify something this elementary? Because transitivity is the property informal
 bookkeeping loses first. Every stream checks the direct condition by eye when adding a row.
 None of them checks the closure — and the closure is where the leak lives. A chain
-`B → B → L` is sound at every direct edge and still means the head rests on literature.
+in `B → B → L` the unsound edge is at the far end; flagging the middle claim
+leaves the head, which is the row people cite, silently contaminated.
 
 ### 2.4 The consequence people will trip over
 

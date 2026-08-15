@@ -57,6 +57,12 @@ human has yet certified that `Sound` is the *right* condition to be checking. Un
 | `MX-B-0006` | Gate 2's parser handles Lean's **wrapped** `#print axioms` output, and footprints parsed must equal `#print axioms` directives per file. Self-tests run on every invocation. | `scripts/check_footprints.py#self_test` | — |
 | `MX-B-0004` | Stream 0's own Lean tree contains **zero** custom `axiom` declarations and **zero** `sorry`, by a scan that strips Lean comments first and matches declarations at any indentation. | `tests/tier_b_axiom_hygiene.py` (**7 negative controls**) | — |
 
+## Tier L — literature
+
+| id | claim | artifact | supports |
+|---|---|---|---|
+| `MX-L-0001` | **Chebotarëv's theorem on roots of unity**, retrieved and **quoted** 2026-08-15 (Frenkel, arXiv:math/0312398v3). *For any `I, J ⊆ F_p` of equal cardinality, `(ω^{ij})_{i∈I,j∈J}` has non-zero determinant.* Both lemmas quoted verbatim; proof is reduction mod `(1−ω)` plus **infinite descent** — no differential operator, no `p`-adic valuation, contrary to what I had estimated from memory. **Not proved here; no Lean file contains it.** **Caveat:** Frenkel *asserts* (attributing Tao) that this is equivalent to `\|supp f\| + \|supp f̂\| ≥ p+1`, but does not prove it — so proving Chebotarëv does **not** by itself give T-TAO. That bridge is a separate paper, unretrieved (LL-7). | `docs/TARGET_CHEBOTAREV.md` | — |
+
 ## Tier C — conjecture / observation
 
 | ID | Claim | Artifact | Rests on |
